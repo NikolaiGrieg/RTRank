@@ -6,7 +6,13 @@ local function updateCounter(counter)
 	if inCombat then
 		local nowTime = GetTime()
 		local seconds = math.floor(nowTime - startTime)
-		frame.text:SetText(seconds)
+
+
+		if Database.size > seconds then
+			timeSerVal = Database.lookup[seconds + 1] -- 1 indexed..
+			frame.text:SetText(seconds .. " : " .. timeSerVal)
+		end
+
 		C_Timer.After(1, updateCounter)
 	end
 end
@@ -43,6 +49,7 @@ function events:PLAYER_REGEN_ENABLED (...)
 	frame.text:SetText(msg)
 end
 
+-- ENCOUNTER_START todo
 
 local function initFrame(frame)
 	frame:SetMovable(true)
@@ -59,4 +66,11 @@ local function initFrame(frame)
 	end
 end
 
+function printDB()
+	for idx,v in pairs(Database.lookup) do
+		print(idx .. " : " .. v)
+	end
+end
+
 initFrame(frame)
+--printDB()
