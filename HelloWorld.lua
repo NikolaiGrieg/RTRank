@@ -1,4 +1,15 @@
-local frame, events = CreateFrame("FRAME", "FooAddonFrame"), {};
+local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
+
+inCombat = false
+
+local function updateCounter(counter)
+	if inCombat then
+		local nowTime = GetTime()
+		local seconds = math.floor(nowTime - startTime)
+		frame.text:SetText(seconds)
+		C_Timer.After(1, updateCounter)
+	end
+end
 
 function events:PLAYER_ENTERING_WORLD(...)
 	local f = frame
@@ -21,20 +32,19 @@ function events:PLAYER_ENTERING_WORLD(...)
 end
 
 function events:PLAYER_REGEN_DISABLED (...)
-	local msg = "in combat"
-	print(msg)
-	frame.text:SetText(msg)
+	inCombat = true
+	startTime = GetTime()
+	updateCounter()
 end
 
 function events:PLAYER_REGEN_ENABLED (...)
+	inCombat = false
 	local msg = "left combat"
-	print(msg)
 	frame.text:SetText(msg)
 end
 
 
 local function initFrame(frame)
-	--frame:RegisterEvent("PLAYER_ENTERING_WORLD");
 	frame:SetMovable(true)
 	frame:EnableMouse(true)
 	frame:RegisterForDrag("LeftButton")
@@ -49,6 +59,4 @@ local function initFrame(frame)
 	end
 end
 
-
 initFrame(frame)
-
