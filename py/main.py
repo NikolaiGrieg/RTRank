@@ -1,5 +1,8 @@
+from py.enums.PlayerClass import PlayerSpec
+from py.enums.Role import Role
+from py.etl.rankings_to_encounters import process_rankings
 from py.secret_handler import get_wcl_key
-from py.wcl_repository import query_wcl, parse_heals_df, generate_metadata, convert_to_timeser
+from py.wcl.wcl_repository import query_wcl, parse_heals_df, generate_metadata, convert_to_timeser, get_rankings_raw
 
 
 def get_and_print():
@@ -26,5 +29,19 @@ def get_and_print():
     print("{", ", ".join([str(int(x[0])) for x in heal_ser_cumul]), "}")
 
 
+def get_top_x_rankings(role, encounter_id, player_spec):
+    key = get_wcl_key()
+
+    rankings_raw = get_rankings_raw(role, encounter_id, None, key, 2)
+    # TODO should include all relevant pages by this point
+
+    df = process_rankings(rankings_raw)
+    print(df.head())
+    return df
+
+
 if __name__ == '__main__':
-    get_and_print()
+    #get_and_print()
+    get_top_x_rankings(Role.DPS, 2329, PlayerSpec.Fire_Mage)  # wration
+
+
