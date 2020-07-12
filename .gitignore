@@ -1,0 +1,5 @@
+*.json
+secrets.json
+\.idea
+*.xml
+*.iml
