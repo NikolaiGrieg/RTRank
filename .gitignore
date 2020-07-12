@@ -3,4 +3,4 @@ secrets.json
 \.idea
 *.xml
 *.iml
-/__pycache__/*
+py/__pycache__/*
