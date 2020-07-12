@@ -19,48 +19,6 @@ def query_wcl(fight_id, sourceid, start, end, type="healing", key=get_wcl_key())
     return contents
 
 
-# def query_wcl_full_event_log(event_type, report_id, start, end, source_row):
-#     key = get_wcl_key()
-#     url = f"https://www.warcraftlogs.com/v1/report/events/{event_type}/{report_id}?start={start}&end={end}&api_key={key}"
-#
-#     response = requests.get(url)
-#     contents = json.loads(response.text)
-#
-#     # from first 300 rows => get sourceID if found, else query next recursively until found
-#     name = source_row[1]['name']
-#
-#     # Then query the rest by sourceID
-#     # and handle extra pages
-#
-#     return contents
-
-
-def parse_heals_df(contents):  # todo move out
-    df = pd.DataFrame(contents['events'])
-    df_type = df['type']
-    keep_ser = df_type.apply(
-        lambda x: True if x in ['heal', 'absorbed'] else False)  # doesnt seem to handle smite absorb etc
-    df = df[keep_ser]
-    return df
-
-
-def generate_metadata(df, start, end):  # todo move out
-    total_heals = sum(df['amount'])
-
-    fight_len = (int(end) - int(start)) / 1000
-    hps = int(total_heals / fight_len)
-    return total_heals, fight_len, hps
-
-
-def convert_to_timeser(df, start):  # todo move out
-    df = df[['amount', 'timestamp']]
-    df['timestamp'].apply(lambda x: int((x - int(start)) / 1000))  # aggregate to seconds
-    heal_ser = df.groupby(['timestamp']).sum()
-
-    heal_ser_cumul = heal_ser.cumsum().values
-    return heal_ser_cumul
-
-
 def get_rankings_raw(role, encounter_id, player_spec, key, num_pages):  # todo handle key in this class
     base_url = "https://www.warcraftlogs.com/v1/rankings/encounter/"
     difficulty = 5  # mythic
