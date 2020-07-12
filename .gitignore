@@ -4,3 +4,4 @@ secrets.json
 *.xml
 *.iml
 py/__pycache__/*
+/testdata/
