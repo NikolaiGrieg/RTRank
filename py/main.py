@@ -1,5 +1,5 @@
-from secret_handler import get_wcl_key
-from wcl_repository import query_wcl, parse_heals_df, generate_metadata, convert_to_timeser
+from py.secret_handler import get_wcl_key
+from py.wcl_repository import query_wcl, parse_heals_df, generate_metadata, convert_to_timeser
 
 
 def get_and_print():
