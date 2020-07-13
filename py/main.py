@@ -1,3 +1,5 @@
+import math
+
 from py.enums.PlayerClass import PlayerSpec
 from py.enums.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
@@ -38,7 +40,8 @@ def get_events_for_all_rankings(df):
         total_amount, fight_len, amount_per_s = generate_metadata(df, start, end)
         print(f"meta: {total_amount/1000=}k, {fight_len=}, {amount_per_s/1000=}k")  # python 3.8+
 
-        time_ser = transform_to_timeseries(df, start)
+        time_ser = transform_to_timeseries(df, start, end)
+        assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}"
         data.append(time_ser)
 
     return data
@@ -46,7 +49,7 @@ def get_events_for_all_rankings(df):
 
 if __name__ == '__main__':
     df = get_top_x_rankings(Role.DPS, 2329, PlayerSpec.Fire_Mage)  # wrathion #  floor(x/100) requests
-    #df = df[:100]  # todo remove
+    df = df[:100]  # todo remove
 
     df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
     timeseries = get_events_for_all_rankings(df)  # len(df) requests

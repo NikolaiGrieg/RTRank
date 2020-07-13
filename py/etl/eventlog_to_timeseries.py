@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 
 
@@ -6,12 +8,45 @@ def parse_log(contents):
     return df
 
 
-def transform_to_timeseries(df, start):  # todo handle cases where there are timesteps with no events
+def fill_missing_timesteps(grouped_ser, start, end):
+    time_ser = {
+        "t": [],
+        "amount": []
+    }
+    counter = -1
+    end_idx = math.floor((end - start) / 1000)
+    for row in grouped_ser.iterrows():
+        counter += 1
+        idx = row[0]
+        val = row[1]['amount']
+        while counter < idx:
+            time_ser["t"].append(counter)
+            time_ser["amount"].append(0)
+            counter += 1
+
+        time_ser["t"].append(counter)
+        time_ser["amount"].append(val)
+
+    while counter < end_idx:  # fill in case of missing at the end
+        counter += 1
+        time_ser["t"].append(counter)
+        time_ser["amount"].append(0)
+
+    time_ser_df = pd.DataFrame(time_ser)
+    return time_ser_df
+
+
+def transform_to_timeseries(df, start, end):
+    pd.options.mode.chained_assignment = None  # supress chained index warning
     df = df[['amount', 'timestamp']]
-    df['timestamp'].apply(lambda x: int((x - int(start)) / 1000))  # aggregate to seconds
+    df['timestamp'] = df['timestamp'].apply(lambda x: int((x - int(start)) / 1000))  # aggregate to seconds
+
     grouped_ser = df.groupby(['timestamp']).sum()
 
-    cumul_ser = grouped_ser.cumsum().values
+    # fill missing timesteps
+    time_ser_df = fill_missing_timesteps(grouped_ser, start, end)
+
+    cumul_ser = time_ser_df.cumsum().values
     return cumul_ser
 
 

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class PlayerSpec(Enum):  # todo structure?
+class PlayerSpec(Enum):  # todo structure
     Fire_Mage = 0
 
 
