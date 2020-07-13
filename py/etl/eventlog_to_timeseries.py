@@ -33,7 +33,7 @@ def fill_missing_timesteps(grouped_ser, start, end):
         time_ser["amount"].append(0)
 
     time_ser_df = pd.DataFrame(time_ser)
-    return time_ser_df
+    return pd.DataFrame(time_ser_df['amount'])
 
 
 def transform_to_timeseries(df, start, end):

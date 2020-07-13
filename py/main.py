@@ -49,7 +49,7 @@ def get_events_for_all_rankings(df):
 
 if __name__ == '__main__':
     df = get_top_x_rankings(Role.DPS, 2329, PlayerSpec.Fire_Mage)  # wrathion #  floor(x/100) requests
-    df = df[:100]  # todo remove
+    df = df[:200]  # todo remove for full set
 
     df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
     timeseries = get_events_for_all_rankings(df)  # len(df) requests

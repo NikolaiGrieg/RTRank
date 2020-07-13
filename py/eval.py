@@ -16,7 +16,6 @@ def rmse(predictions, targets):
     return np.sqrt(((predictions - targets) ** 2).mean())
 
 
-# todo divide cumulative series by t_i to get aps at each step, should be constant for the extrapolation period
 def extrapolate_aps_linearly(jagged_matrix):  # aps = amount per sec (dps/hps)
     """
     Will extrapolate hps/dps to cover a longer period while maintaining the same hps/dps.
@@ -69,8 +68,8 @@ def process(matrix):
         for t in range(len(current)):
             curr_val = current[t]
 
-            if t == len(current) - 5:
-                print(t)
+            # if t == len(current) - 5:
+            #     print(t)
                 # print()
 
             # find closest cumulative match O(len(timeser))
@@ -105,7 +104,7 @@ def plot_results(all_preds, ytitle='y_hat', num_traces=5, truncate_at=400):
         preds_fixed_len.append(pred[:truncate_at])
     x = np.linspace(0, maxlen, maxlen)
 
-    sampled_preds = random.sample(preds_fixed_len, num_traces)
+    sampled_preds = random.sample(preds_fixed_len, min(len(preds_fixed_len), num_traces))
     for pred in sampled_preds:
         plt.plot(x, pred)
     plt.ylabel(ytitle)
@@ -146,7 +145,7 @@ window_size = 10
 # preprocess
 square_timeser = extrapolate_aps_linearly(timeser)
 
-time_normalized_mat = cumulative_mat_to_aps(square_timeser)
+#time_normalized_mat = cumulative_mat_to_aps(square_timeser)
 
 # process
 all_preds, all_loss_at_t, all_pred_rank_at_t = process(square_timeser)

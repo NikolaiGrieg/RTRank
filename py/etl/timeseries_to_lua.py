@@ -6,7 +6,7 @@ import pandas as pd
 def generate_lua_db(timeseries, output_path):
     curr_date = datetime.now()
     date_str = curr_date.strftime("%Y-%m-%d %H:%M:%S")
-    length = len(timeseries)  # TODO handle lengths of each series
+    length = len(timeseries)
 
     # generate lua
     header = "".join(["Database = {date=\"", date_str, "\",lookup={}, size = ", str(length), "}\n"])
