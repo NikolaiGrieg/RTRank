@@ -74,3 +74,11 @@ end
 
 initFrame(frame)
 --printDB()
+
+--TODOs:
+--Get class, spec, encounter ID on encounter start, to identify correct table.
+--Create combat log parser (or see if we can use some existing API)
+--Feature 1: get relative performance compared to rank1 at t
+--Feature 2: functionality to specify rank for comparison as user-setting (maybe just have a config file at first)
+--Then presentation could use some polish
+--Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)
