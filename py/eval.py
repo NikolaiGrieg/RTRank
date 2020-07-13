@@ -70,7 +70,7 @@ def process(matrix):
 
             # if t == len(current) - 5:
             #     print(t)
-                # print()
+            # print()
 
             # find closest cumulative match O(len(timeser))
             closest_dist = math.inf
@@ -112,6 +112,21 @@ def plot_results(all_preds, ytitle='y_hat', num_traces=5, truncate_at=400):
     plt.show()
 
 
+def plot_aggregates(arrays, truncate_at=400):
+    maxlen = min(truncate_at, max([len(x) for x in arrays]))
+    arr_fixed_len = []
+    for arr in arrays:
+        arr_fixed_len.append(arr[:truncate_at])
+    x = np.linspace(0, maxlen, maxlen)
+
+    for i, pred in enumerate(arr_fixed_len):
+        plt.plot(x, pred, label=str(i))
+    plt.ylabel('statistic')
+    plt.xlabel('t')
+    plt.legend(loc="upper left")
+    plt.show()
+
+
 def get_abs_rank_diff_at_t(all_pred_ranks):
     all_rank_diffs = []
     for i, ser in enumerate(all_pred_ranks):
@@ -131,13 +146,19 @@ def moving_average(a, n):
 
 def smooth_series(jagged_matrix, window):
     smooth_mat = []
-    for ser in jagged_matrix:
-        smooth_mat.append(moving_average(ser, window))
+    if type(jagged_matrix) == list:  # more than 1 dim
+        for ser in jagged_matrix:
+            smooth_mat.append(moving_average(ser, window))
+    else:
+        return moving_average(jagged_matrix, window)
     return smooth_mat
 
 
-# plot_results(all_preds)
-# plot_results(all_loss_at_t, ytitle='abs loss')
+def get_mae_at_t(arrays):
+    matrix = np.stack(arrays, axis=0)
+    mae = matrix.mean(axis=1)
+    return mae
+
 
 # config
 window_size = 10
@@ -145,19 +166,24 @@ window_size = 10
 # preprocess
 square_timeser = extrapolate_aps_linearly(timeser)
 
-#time_normalized_mat = cumulative_mat_to_aps(square_timeser)
+# time_normalized_mat = cumulative_mat_to_aps(square_timeser)
 
 # process
 all_preds, all_loss_at_t, all_pred_rank_at_t = process(square_timeser)
 
 all_rank_diffs = get_abs_rank_diff_at_t(all_pred_rank_at_t)
 
-# smooth_ranks = smooth_series(all_rank_diffs, window_size)
 
 plot_results(smooth_series(all_rank_diffs, window_size), ytitle=f'Abs rank diff (smoothed w={window_size})',
              num_traces=20)
 plot_results(smooth_series(all_loss_at_t, window_size), f"Abs loss (smoothed w={window_size})", num_traces=20)
 
-# Preliminary results (fire mage, mythic wrathion):
-# absolute loss seems to be in the range of 0-4m
-# (needs further testing)
+# aggregates:
+ma_rank_at_t = get_mae_at_t(smooth_series(all_rank_diffs, window_size))
+ma_loss_at_t = get_mae_at_t(smooth_series(all_loss_at_t, window_size))
+
+ma_rank_at_t_smooth = smooth_series(ma_rank_at_t, 10)
+ma_loss_at_t_smooth = smooth_series(ma_loss_at_t, 10)
+
+plot_aggregates([ma_rank_at_t_smooth])  # appears to rise significantly after a while
+plot_aggregates([ma_loss_at_t_smooth])  # todo refactor
