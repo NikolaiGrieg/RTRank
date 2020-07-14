@@ -3,24 +3,21 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 --config
 local match_ranking = 100
 
---temp config
-local metric_type = "damage" --"healing"
-
 --vars
 inCombat = false
 local final_target_amount = -1
 local final_player_amount = -1
 local final_diff = -1
 
-local function updateCounter(counter)
+local function updateCounter(counter) --todo this method is already overloaded
 	if inCombat then
 		local seconds = get_current_time_step()
 
 		local target_series = Database.lookup[match_ranking]
 		local target_series_len = 200 --TODO replace sample value
 
-		local cumulative_amt = get_current_amount(metric_type)
-		--TODO get player role (dmg/heal)
+		local role = get_role(get_player_class(), get_player_spec())
+		local cumulative_amt = get_current_amount(role)
 
 
 		if seconds < target_series_len then
@@ -125,7 +122,7 @@ end
 local details = _G.Details
 
 function get_current_amount( metric_type )
-	if metric_type == "healing" then
+	if metric_type == "healer" then
 		local actor = details:GetActor ("current", DETAILS_ATTRIBUTE_HEAL, UnitName ("player"))
 		if actor ~= nil then
 			return actor.total
@@ -143,6 +140,21 @@ function get_current_amount( metric_type )
 	end
 end
 
+function get_player_class( ... )
+	local playerClass, englishClass = UnitClass("player");
+	return playerClass
+end
+
+function get_player_spec()
+	local currentSpec = GetSpecialization()
+	local currentSpecName = currentSpec and select(2, GetSpecializationInfo(currentSpec)) or "None"
+	--print("Your current spec:", currentSpecName)
+	return currentSpecName
+end
+
+function get_role(player_class, player_spec )
+	return Constants["Rolemap"][player_class][player_spec]
+end
 
 initFrame(frame)
 --printDB()
@@ -154,3 +166,4 @@ initFrame(frame)
 --Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)
 
 --todo fix: square format for lua db, mechanism for handling current time going over max previously seen
+--todo handle respec events
