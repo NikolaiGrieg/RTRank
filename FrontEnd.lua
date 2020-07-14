@@ -3,9 +3,14 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 --config
 local match_ranking = 100
 
+--temp config
+local metric_type = "damage" --"healing"
 
+--vars
 inCombat = false
-local final_amount = -1
+local final_target_amount = -1
+local final_player_amount = -1
+local final_diff = -1
 
 local function updateCounter(counter)
 	if inCombat then
@@ -14,14 +19,20 @@ local function updateCounter(counter)
 		local target_series = Database.lookup[match_ranking]
 		local target_series_len = 200 --TODO replace sample value
 
+		local cumulative_amt = get_current_amount(metric_type)
+		--TODO get player role (dmg/heal)
+
 
 		if seconds < target_series_len then
-			timeSerVal = target_series[seconds + 1] -- 1 indexed..
-			frame.text:SetText(seconds .. " : " .. format_amount(timeSerVal))
-			final_amount = timeSerVal
+			local timeSerVal = target_series[seconds + 1] -- 1 indexed..
+			local metric_diff = cumulative_amt - timeSerVal
+			frame.text:SetText("Target: " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
+			final_target_amount = timeSerVal
+			final_player_amount = cumulative_amt
+			final_diff = metric_diff
 		end
 
-		C_Timer.After(1, updateCounter)
+		C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
 	end
 end
 
@@ -38,12 +49,13 @@ function format_amount( num )
 
 	local thousand = 1000
 	local million = 1000000
-	if num > thousand then
-		if num > million then
+	if math.abs(num) > thousand then
+		if math.abs(num) > million then
 			return string.format("%.2f", (num / million)) .. "m"
 		end
 		return string.format("%.2f", (num / thousand)) .. "k"
 	end
+	return string.format("%.2f", num)
 end
 
 
@@ -53,10 +65,12 @@ function events:PLAYER_ENTERING_WORLD(...)
 	f:SetWidth(140) -- Set these to whatever height/width is needed 
 	f:SetHeight(64) -- for your Texture
 
-	local t = f:CreateTexture(nil,"BACKGROUND")
-	t:SetColorTexture(0,0,0, 0.8)--"Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
-	t:SetAllPoints(f)
-	f.texture = t
+	--todo maybe create dynamically resizing background wrt text
+
+	--local t = f:CreateTexture(nil,"BACKGROUND")
+	--t:SetColorTexture(0,0,0, 0.8)--"Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
+	--t:SetAllPoints(f)
+	--f.texture = t
 
 	f:SetPoint("CENTER",200,-100)
 
@@ -67,18 +81,18 @@ function events:PLAYER_ENTERING_WORLD(...)
 	f:Show()
 end
 
-function events:PLAYER_REGEN_DISABLED (...)
+function events:PLAYER_REGEN_DISABLED (...) --enter combat
 	inCombat = true
 	startTime = GetTime()
 	updateCounter()
 end
 
-function events:PLAYER_REGEN_ENABLED (...)
+function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	inCombat = false
 	local t = get_current_time_step()
 	local msg = "Final value against rank " .. match_ranking .. ":\n" .. 
-		" For t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_amount) ..
-		"\nYou: TODO";
+		" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
+		"\nYou: " .. format_amount(final_player_amount) .. "\nDiff: " .. format_amount(final_diff);
 
 	frame.text:SetText(msg)
 end
@@ -107,15 +121,34 @@ function printDB()
 end
 
 
+-- todo new file probably
+local details = _G.Details
+
+function get_current_amount( metric_type )
+	if metric_type == "healing" then
+		local actor = details:GetActor ("current", DETAILS_ATTRIBUTE_HEAL, UnitName ("player"))
+		if actor ~= nil then
+			return actor.total
+		else
+			return 0
+		end
+	end
+	if metric_type == "damage" then
+		local actor = details:GetActor("current", DETAILS_ATTRIBUTE_DAMAGE, UnitName ("player")) --default damage, current combat
+		if actor ~= nil then
+			return actor.total
+		else
+			return 0
+		end
+	end
+end
+
 
 initFrame(frame)
 --printDB()
 
 --TODOs:
---get current cumulative aps from Details api
-
 --Get class, spec, encounter ID on encounter start, to identify correct table.
---Feature 1: get relative performance compared to rank1 at t
 --Feature 2: functionality to specify rank for comparison as user-setting (maybe just have a config file at first)
 --Then presentation could use some polish
 --Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)
