@@ -1,12 +1,12 @@
 import math
 
-from py.enums.PlayerClass import PlayerSpec
+from py.enums.PlayerClass import PlayerSpec, PlayerClass
 from py.enums.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
 from py.etl.timeseries_to_lua import generate_lua_db
 from py.secret_handler import get_wcl_key
-from py.utils import generate_metadata
+from py.utils import generate_metadata, extrapolate_aps_linearly
 from py.wcl.wcl_repository import query_wcl, get_rankings_raw, \
     get_fight_metadata_bulk
 from rootfile import ROOT_DIR
@@ -48,10 +48,14 @@ def get_events_for_all_rankings(df):
 
 
 if __name__ == '__main__':
-    df = get_top_x_rankings(Role.DPS, 2329, PlayerSpec.Fire_Mage)  # wrathion #  floor(x/100) requests
-    df = df[:200]  # todo remove for full set
+    playerclass = PlayerClass.Priest
+    playerspec = PlayerSpec.Shadow_priest # todo structure
+
+    df = get_top_x_rankings(Role.DPS, 2329, PlayerSpec.Fire_mage)  # wrathion #  floor(x/100) requests
+    df = df[:10]  # todo remove for full set
 
     df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
     timeseries = get_events_for_all_rankings(df)  # len(df) requests
-    generate_lua_db(timeseries, ROOT_DIR + "\\testdata\\Database.lua")
+    timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+    generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, "Shadow")  # todo
     # todo add some metadata for each series

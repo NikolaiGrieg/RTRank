@@ -1,7 +1,11 @@
 local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 
 --config
-local match_ranking = 100
+local match_ranking = 1
+
+--temp config todo dynamically determine database on startup
+local encounter_id = 2329
+db = Database_Priest
 
 --vars
 inCombat = false
@@ -9,14 +13,25 @@ local final_target_amount = -1
 local final_player_amount = -1
 local final_diff = -1
 
-local function updateCounter(counter) --todo this method is already overloaded
+local function updateCounter(counter) --todo refactor this method is already overloaded
 	if inCombat then
 		local seconds = get_current_time_step()
 
-		local target_series = Database.lookup[match_ranking]
+		local class = get_player_class()
+		local spec = get_player_spec()
+		local target_series = nil
+
+
+		if db.lookup[spec] ~= nil then
+			target_series = db.lookup[spec][encounter_id][match_ranking]
+		else
+			print("Could not find data for spec: " .. spec)
+		end
+
+
 		local target_series_len = 200 --TODO replace sample value
 
-		local role = get_role(get_player_class(), get_player_spec())
+		local role = get_role(class, spec)
 		local cumulative_amt = get_current_amount(role)
 
 
@@ -112,7 +127,7 @@ local function initFrame(frame)
 end
 
 function printDB()
-	for idx,v in pairs(Database.lookup) do
+	for idx,v in pairs(db.lookup) do
 		print(idx .. " : " .. v)
 	end
 end

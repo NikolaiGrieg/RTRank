@@ -1,6 +1,6 @@
 ## Interface: 80300
 ## Title: RTRank
 ## Notes: My first AddOn
-Database.lua
+DatabasePriest.lua
 Constants.lua
 FrontEnd.lua

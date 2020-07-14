@@ -6,35 +6,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from py.utils import extrapolate_aps_linearly
 from rootfile import ROOT_DIR
 
 with open(ROOT_DIR + "\\testdata\\Database.pkl", 'rb') as f:
-    timeser = pickle.load(f)
+    square_timeser = pickle.load(f)
 
 
 def rmse(predictions, targets):
     return np.sqrt(((predictions - targets) ** 2).mean())
-
-
-def extrapolate_aps_linearly(jagged_matrix):  # aps = amount per sec (dps/hps)
-    """
-    Will extrapolate hps/dps to cover a longer period while maintaining the same hps/dps.
-    :param jagged_matrix:
-    :return: square matrix as list of list
-    """
-    maxlen = max([len(x) for x in jagged_matrix])
-    square_mat = []
-    for ser in jagged_matrix:
-        if ser.shape[1] > 1:
-            pad_ser = list(ser[:, 1])
-        else:
-            pad_ser = [x[0] for x in ser]
-        aps = pad_ser[-1] / len(ser)
-        while len(pad_ser) < maxlen:
-            prev_val = pad_ser[-1]
-            pad_ser.append(int(prev_val + aps))
-        square_mat.append(np.array(pad_ser))
-    return square_mat
 
 
 def cumulative_mat_to_aps(square_timeser):
@@ -164,7 +144,7 @@ def get_mae_at_t(arrays):
 window_size = 10
 
 # preprocess
-square_timeser = extrapolate_aps_linearly(timeser)
+#square_timeser = extrapolate_aps_linearly(timeser)
 
 # time_normalized_mat = cumulative_mat_to_aps(square_timeser)
 
@@ -172,7 +152,6 @@ square_timeser = extrapolate_aps_linearly(timeser)
 all_preds, all_loss_at_t, all_pred_rank_at_t = process(square_timeser)
 
 all_rank_diffs = get_abs_rank_diff_at_t(all_pred_rank_at_t)
-
 
 plot_results(smooth_series(all_rank_diffs, window_size), ytitle=f'Abs rank diff (smoothed w={window_size})',
              num_traces=20)

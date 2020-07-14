@@ -24,8 +24,8 @@ def get_rankings_raw(role, encounter_id, player_spec, key, num_pages):  # todo h
     difficulty = 5  # mythic
 
     # todo extract
-    player_class = 4  # mage
-    player_spec = 2  # fire
+    player_class = 7  # priest
+    player_spec = 3  # shadow
 
     full_url = base_url + f"{encounter_id}?metric={role.name.lower()}&difficulty={difficulty}&class={player_class}&" \
                           f"spec={player_spec}&api_key={key}"
