@@ -4,7 +4,7 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 local match_ranking = 1
 
 --temp config todo dynamically determine database on startup
-local encounter_id = 2329
+local encounter_id = 2327--2329
 db = Database_Priest
 
 --vars
@@ -38,7 +38,7 @@ local function updateCounter(counter) --todo refactor this method is already ove
 		if seconds < target_series_len then
 			local timeSerVal = target_series[seconds + 1] -- 1 indexed..
 			local metric_diff = cumulative_amt - timeSerVal
-			frame.text:SetText("Target: " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
+			frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
 			final_target_amount = timeSerVal
 			final_player_amount = cumulative_amt
 			final_diff = metric_diff

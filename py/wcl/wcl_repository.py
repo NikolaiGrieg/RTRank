@@ -19,13 +19,9 @@ def query_wcl(fight_id, sourceid, start, end, type="healing", key=get_wcl_key())
     return contents
 
 
-def get_rankings_raw(role, encounter_id, player_spec, key, num_pages):  # todo handle key in this class
+def get_rankings_raw(role, encounter_id, player_class, player_spec, key, num_pages):  # todo handle key in this class
     base_url = "https://www.warcraftlogs.com/v1/rankings/encounter/"
-    difficulty = 5  # mythic
-
-    # todo extract
-    player_class = 7  # priest
-    player_spec = 3  # shadow
+    difficulty = 5  # mythic todo extract
 
     full_url = base_url + f"{encounter_id}?metric={role.name.lower()}&difficulty={difficulty}&class={player_class}&" \
                           f"spec={player_spec}&api_key={key}"

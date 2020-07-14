@@ -1,11 +1,20 @@
-from enum import Enum
 
 
-class PlayerSpec(Enum):  # todo structure
-    Fire_mage = 2
-    Shadow_priest = 3
+class Priest:
+    name = "Priest"
+    wcl_id = 7
+    specs = {
+        "Discipline": 1,
+        "Holy": 2,
+        "Shadow": 3,
+    }
 
 
-class PlayerClass(Enum):
-    Mage = 4
-    Priest = 7
+class Mage:
+    wcl_id = 4
+    name = "Mage"
+    specs = {
+        "Arcane": 1,
+        "Fire": 2,
+        "Frost": 3,
+    }

@@ -1,0 +1,64 @@
+{
+  "encounters": [
+    {
+      "id": 2329,
+      "name": "Wrathion",
+      "npcID": 161720
+    },
+    {
+      "id": 2327,
+      "name": "Maut",
+      "npcID": 156523
+    },
+    {
+      "id": 2334,
+      "name": "Prophet Skitra",
+      "npcID": 157238
+    },
+    {
+      "id": 2328,
+      "name": "Dark Inquisitor Xanesh",
+      "npcID": 156575
+    },
+    {
+      "id": 2333,
+      "name": "The Hivemind",
+      "npcID": 157253
+    },
+    {
+      "id": 2335,
+      "name": "Shad'har the Insatiable",
+      "npcID": 157231
+    },
+    {
+      "id": 2343,
+      "name": "Drest'agath",
+      "npcID": 157602
+    },
+    {
+      "id": 2336,
+      "name": "Vexiona",
+      "npcID": 157354
+    },
+    {
+      "id": 2331,
+      "name": "Ra-den the Despoiled",
+      "npcID": 156866
+    },
+    {
+      "id": 2345,
+      "name": "Il'gynoth, Corruption Reborn",
+      "npcID": 158328
+    },
+    {
+      "id": 2337,
+      "name": "Carapace of N'Zoth",
+      "npcID": 157439
+    },
+    {
+      "id": 2344,
+      "name": "N'Zoth the Corruptor",
+      "npcID": 158041
+    }
+    ]
+}

@@ -1,21 +1,21 @@
 import math
 
-from py.enums.PlayerClass import PlayerSpec, PlayerClass
+from py.enums.PlayerClass import Priest
 from py.enums.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
 from py.etl.timeseries_to_lua import generate_lua_db
 from py.secret_handler import get_wcl_key
-from py.utils import generate_metadata, extrapolate_aps_linearly
+from py.utils import generate_metadata, extrapolate_aps_linearly, get_encounter_id_map
 from py.wcl.wcl_repository import query_wcl, get_rankings_raw, \
     get_fight_metadata_bulk
 from rootfile import ROOT_DIR
 
 
-def get_top_x_rankings(role, encounter_id, player_spec):
+def get_top_x_rankings(role, encounter_id, player_class, player_spec):
     key = get_wcl_key()
 
-    rankings_raw = get_rankings_raw(role, encounter_id, None, key, 2)
+    rankings_raw = get_rankings_raw(role, encounter_id, player_class, player_spec, key, 2)
 
     df = process_rankings(rankings_raw)
     print(df.head())
@@ -48,14 +48,18 @@ def get_events_for_all_rankings(df):
 
 
 if __name__ == '__main__':
-    playerclass = PlayerClass.Priest
-    playerspec = PlayerSpec.Shadow_priest # todo structure
+    playerclass = Priest()
+    playerspec = playerclass.specs["Shadow"]
 
-    df = get_top_x_rankings(Role.DPS, 2329, PlayerSpec.Fire_mage)  # wrathion #  floor(x/100) requests
-    df = df[:10]  # todo remove for full set
+    encounters = get_encounter_id_map()
+    cur_encounter = encounters["Maut"]
+
+    df = get_top_x_rankings(Role.DPS, cur_encounter, playerclass, playerspec)
+    df = df[:2]  # todo remove temp
 
     df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
     timeseries = get_events_for_all_rankings(df)  # len(df) requests
     timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
-    generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, "Shadow")  # todo
+    generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, "Shadow",
+                    encounter_id=cur_encounter, append=True)
     # todo add some metadata for each series

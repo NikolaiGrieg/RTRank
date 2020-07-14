@@ -1,4 +1,8 @@
+import json
+
 import numpy as np
+
+from rootfile import ROOT_DIR
 
 
 def generate_metadata(df, start, end):
@@ -28,3 +32,13 @@ def extrapolate_aps_linearly(jagged_matrix):  # aps = amount per sec (dps/hps)
             pad_ser.append(int(prev_val + aps))
         square_mat.append(np.array(pad_ser))
     return square_mat
+
+
+def get_encounter_id_map():
+    with open(ROOT_DIR + "\\py\\enums\\Encounters.json") as f:
+        encounters = json.load(f)['encounters']
+    encounters_reversed = {}
+    for d in encounters:
+        encounters_reversed[d['name']] = d['id']
+
+    return encounters_reversed
