@@ -183,5 +183,4 @@ initFrame(frame)
 --Then presentation could use some polish
 --Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)
 
---todo fix: square format for lua db, mechanism for handling current time going over max previously seen
 --todo handle respec events

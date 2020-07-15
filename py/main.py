@@ -55,11 +55,16 @@ if __name__ == '__main__':
     cur_encounter = encounters["Maut"]
 
     df = get_top_x_rankings(Role.DPS, cur_encounter, playerclass, playerspec)
-    df = df[:2]  # todo remove temp
+
+    df = df[:2]  # temp ###
 
     df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
     timeseries = get_events_for_all_rankings(df)  # len(df) requests
     timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
     generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, "Shadow",
                     encounter_id=cur_encounter, append=True)
-    # todo add some metadata for each series
+
+    # todo 1: rewrite generate_lua_db to gracefully append data; to support multi-session table generation
+    # todo 2: load all shadow encounters
+    # todo 3: load all priest encounters (need to fix healing modules)
+    # todo x: look into extending this to more classes and fix gui (infer context + user configurable target rank)
