@@ -4,7 +4,7 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 local match_ranking = 1
 
 --temp config todo dynamically determine database on startup
-local encounter_id = 2327--2329
+local encounter_id = 2334--2329
 db = Database_Priest
 
 --vars
@@ -29,7 +29,7 @@ local function updateCounter(counter) --todo refactor this method is already ove
 		end
 
 
-		local target_series_len = 200 --TODO replace sample value
+		local target_series_len = db.lookup[spec][encounter_id].length
 
 		local role = get_role(class, spec)
 		local cumulative_amt = get_current_amount(role)
