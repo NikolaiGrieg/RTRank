@@ -1,4 +1,4 @@
-from py.enums.Role import Role
+from py.static.Role import Role
 from abc import ABC, abstractmethod
 
 
@@ -43,4 +43,9 @@ class Mage(PlayerClass):
         "Arcane": 1,
         "Fire": 2,
         "Frost": 3,
+    }
+    spec_roles = {
+        "Arcane": Role.DPS,
+        "Fire": Role.DPS,
+        "Frost": Role.DPS,
     }

@@ -5,3 +5,4 @@ secrets.json
 *.iml
 py/__pycache__/*
 /testdata/
+*.pkl

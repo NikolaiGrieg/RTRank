@@ -1,8 +1,8 @@
 import math
 import pickle
 
-from py.enums.PlayerClass import Priest
-from py.enums.Role import Role
+from py.static.PlayerClass import Priest
+from py.static.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
 from py.etl.timeseries_to_lua import generate_lua_db
@@ -75,7 +75,7 @@ def generate_data_for_spec(playerclass, playerspec):
             timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
             timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
 
-            generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, spec_name, # todo verify
+            generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\data\\Database", playerclass.name, spec_name,
                             encounter_id=encounter_id, append=None)
 
 
@@ -84,7 +84,7 @@ def get_processed_data():
     :return: processed_specs = list over (partially) processed specs, processed_encounters = dict[spec] = [encounterIDs]
     """
     try:
-        with open(ROOT_DIR + "\\testdata\\DatabasePriest.pkl", 'rb') as f:
+        with open(ROOT_DIR + "\\data\\DatabasePriest.pkl", 'rb') as f:  # todo this needs to be in some constants file
             master_frames = pickle.load(f)
     except FileNotFoundError:
         return None
@@ -103,4 +103,5 @@ if __name__ == '__main__':
         print(f"Processing spec {specname}({spec})")
         generate_data_for_spec(playerclass, spec)
 
-    # todo x: look into extending this to more classes and fix gui (infer context + user configurable target rank)
+    # todo infer encounterid
+    # todo user configurable target rank + more classes
