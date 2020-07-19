@@ -99,12 +99,8 @@ def get_processed_data():
 
 if __name__ == '__main__':
     playerclass = Priest()
-    playerspec = playerclass.specs["Shadow"]
+    for specname, spec in playerclass.specs.items():
+        print(f"Processing spec {specname}({spec})")
+        generate_data_for_spec(playerclass, spec)
 
-    generate_data_for_spec(playerclass, playerspec)
-
-    playerspec = playerclass.specs["Discipline"]
-    generate_data_for_spec(playerclass, playerspec)
-
-    # todo 3: load all priest encounters (need to fix healing modules)
     # todo x: look into extending this to more classes and fix gui (infer context + user configurable target rank)
