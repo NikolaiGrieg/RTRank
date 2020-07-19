@@ -11,8 +11,8 @@ def generate_url(fight_id, sourceid, start, end, key, type):
     return url
 
 
-def query_wcl(fight_id, sourceid, start, end, type="healing", key=get_wcl_key()):
-    url = generate_url(fight_id, sourceid, start, end, key, type)
+def query_wcl(fight_id, sourceid, start, end, metric_type, key=get_wcl_key()):
+    url = generate_url(fight_id, sourceid, start, end, key, metric_type)
 
     response = requests.get(url)
     contents = json.loads(response.text)

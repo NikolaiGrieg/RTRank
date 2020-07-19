@@ -1,4 +1,5 @@
 import math
+import pickle
 
 from py.enums.PlayerClass import Priest
 from py.enums.Role import Role
@@ -27,14 +28,21 @@ def get_fight_metadata_for_rankings(df):
     return df
 
 
-def get_events_for_all_rankings(df):
+def get_events_for_all_rankings(df, role):
     data = []
     for row in df.iterrows():
         report_id = row[1]['reportID']
         start = row[1]['start_time']
         end = row[1]['end_time']
         source_id = row[1]['source_id']
-        contents = query_wcl(report_id, source_id, start, end, type="damage-done")
+
+        metric_type = None
+        if role == Role.HPS:
+            metric_type = "healing"
+        elif role == Role.DPS:
+            metric_type = "damage-done"
+
+        contents = query_wcl(report_id, source_id, start, end, metric_type=metric_type)
 
         df = parse_log(contents)
         total_amount, fight_len, amount_per_s = generate_metadata(df, start, end)
@@ -49,21 +57,44 @@ def get_events_for_all_rankings(df):
 
 def generate_data_for_spec(playerclass, playerspec):
     encounters = get_encounter_id_map()
-    # cur_encounter = encounters["Maut"]
     encounter_ids = encounters.values()
-    for encounter_id in encounter_ids:
-        df = get_top_x_rankings(Role.DPS, encounter_id, playerclass, playerspec)
 
-        df = df[:2]  # temp ###
+    encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
+    spec_name = playerclass.get_spec_name_from_idx(playerspec)
 
-        df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
-        timeseries = get_events_for_all_rankings(df)  # len(df) requests
-        timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+    processed_data = get_processed_data()
 
-        # todo implement checkpointing, so we can resume at previously checked in value in case of error
-        # this will currently replay-append the entire dataset
-        generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, "Shadow",
-                        encounter_id=encounter_id, append=None)
+    if processed_data is None or spec_name not in get_processed_data()[0]:  # todo handle partial spec loads (missing encounters)
+        spec_role = playerclass.get_role_for_spec(spec_name)
+        for encounter_id in encounter_ids:
+            df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
+
+            df = df[:2]  # temp cap num ranks ###
+
+            df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
+            timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
+            timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+
+            generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\testdata\\Database", playerclass.name, spec_name, # todo verify
+                            encounter_id=encounter_id, append=None)
+
+
+def get_processed_data():
+    """
+    :return: processed_specs = list over (partially) processed specs, processed_encounters = dict[spec] = [encounterIDs]
+    """
+    try:
+        with open(ROOT_DIR + "\\testdata\\DatabasePriest.pkl", 'rb') as f:
+            master_frames = pickle.load(f)
+    except FileNotFoundError:
+        return None
+    processed_specs = master_frames.keys()
+    processed_encounters = {}
+    for spec in processed_specs:
+        processed_encounters[spec] = []
+        for encounter in master_frames[spec].keys():
+            processed_encounters[spec].append(encounter)
+    return processed_specs, processed_encounters  # todo need mechanism to handle freshness constraint here also
 
 
 if __name__ == '__main__':
@@ -72,7 +103,8 @@ if __name__ == '__main__':
 
     generate_data_for_spec(playerclass, playerspec)
 
-    # todo 1: rewrite generate_lua_db to gracefully append data; to support multi-session table generation
-    # todo 2: load all shadow encounters
+    playerspec = playerclass.specs["Discipline"]
+    generate_data_for_spec(playerclass, playerspec)
+
     # todo 3: load all priest encounters (need to fix healing modules)
     # todo x: look into extending this to more classes and fix gui (infer context + user configurable target rank)

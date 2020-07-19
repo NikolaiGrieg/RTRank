@@ -34,14 +34,12 @@ def generate_lua_db(timeseries, output_path_prefix, player_class, spec, encounte
         master_frames = {spec: {encounter_id: timeseries}}
 
         # generate lua
-        header = generate_lua_db_metadata(player_class, spec, master_frames)
+        header = generate_lua_db_metadata(player_class, [spec], master_frames)  ## refactor
 
         # data
-        lines = generate_lua_db_body(player_class, spec, master_frames)
-        lua_str = join_lua_strings([header] + lines)
+        lines = generate_lua_db_body(player_class, spec, master_frames)  ## refactor
+        lua_str = join_lua_strings([header] + lines)  ## refactor
 
-
-        # TODO need to create these files here
         # commit to files
         with open(output_path, "w+") as f:  # doesn't seem to be able to create file if not existing
             f.write(lua_str)
@@ -54,13 +52,20 @@ def generate_lua_db(timeseries, output_path_prefix, player_class, spec, encounte
         with open(output_path.replace(".lua", ".pkl"), 'rb') as f:
             master_frames = pickle.load(f)
 
-        master_frames[spec][encounter_id] = timeseries
+        recorded_specs = master_frames.keys()
+        #  maybe todo refactor default dict
+        if spec in recorded_specs:
+            master_frames[spec][encounter_id] = timeseries
+        else:
+            master_frames[spec] = {encounter_id: timeseries}
 
-        # generate lua header from new m
-        lua_header = generate_lua_db_metadata(player_class, spec, master_frames)
+        # generate lua header from scratch
+        lua_header = generate_lua_db_metadata(player_class, recorded_specs, master_frames)
 
         # generate lua body as separate strings
-        new_lua_body = generate_lua_db_body(player_class, spec, master_frames)
+        new_lua_body = []
+        for spec_key in master_frames.keys():
+            new_lua_body += generate_lua_db_body(player_class, spec_key, master_frames)
 
         # join
         lua_str = join_lua_strings([lua_header] + new_lua_body)
@@ -116,15 +121,22 @@ def generate_encounter_id_init_table(encounter_ids):
     return full_str
 
 
-def generate_lua_db_metadata(player_class, spec, master_frames):
-    encounter_arr = master_frames[spec].keys()
+def generate_lookup_init(specs, master_frames):
+    spec_strings = []
+    for spec in specs:
+        encounter_arr = master_frames[spec].keys()
+
+        encounter_id_inits = generate_encounter_id_init_table(encounter_arr)
+        spec_strings.append("".join(["[\"", spec, "\"] = {", encounter_id_inits, "}"]))
+    return ",".join(spec_strings)
+
+
+def generate_lua_db_metadata(player_class, specs, master_frames):
     curr_date = datetime.now()
     date_str = curr_date.strftime("%Y-%m-%d %H:%M:%S")
-    length = sum([len(x) for x in master_frames[spec].values()])
-
-    encounter_id_inits = generate_encounter_id_init_table(encounter_arr)
+    length = sum([sum([len(x) for x in master_frames[spec].values()]) for spec in specs])  # total length along 2d
 
     header = "".join(
-        ["Database_", player_class, " = {date=\"", date_str, "\",lookup={", "[\"", spec, "\"] = {", encounter_id_inits,
-         "}}, size = ", str(length), "}\n"])
+        ["Database_", player_class, " = {date=\"", date_str, "\",lookup={", generate_lookup_init(specs, master_frames),
+         "}, size = ", str(length), "}\n"])
     return header

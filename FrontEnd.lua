@@ -4,7 +4,7 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 local match_ranking = 1
 
 --temp config todo dynamically determine database on startup
-local encounter_id = 2334--2329
+local encounter_id = 2329
 db = Database_Priest
 
 --vars
@@ -23,7 +23,11 @@ local function updateCounter(counter) --todo refactor this method is already ove
 
 
 		if db.lookup[spec] ~= nil then
-			target_series = db.lookup[spec][encounter_id][match_ranking]
+			if db.lookup[spec][encounter_id] ~= nil then
+				target_series = db.lookup[spec][encounter_id][match_ranking]
+			else
+				print("Could not find data for encounter: " .. encounter_id)
+			end
 		else
 			print("Could not find data for spec: " .. spec)
 		end
