@@ -2,9 +2,12 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 
 --config
 local match_ranking = 1
+local dummy_encounter = 2329
+local dummy_enabled = false
 
 --temp config todo dynamically determine database on startup
-local encounter_id = 2329
+
+
 db = Database_Priest
 
 --vars
@@ -12,6 +15,10 @@ inCombat = false
 local final_target_amount = -1
 local final_player_amount = -1
 local final_diff = -1
+local lookup_state = {
+	["active_encounter"] = -1,
+	["difficultyID"] = -1
+}
 
 local function updateCounter(counter) --todo refactor this method is already overloaded
 	if inCombat then
@@ -21,34 +28,48 @@ local function updateCounter(counter) --todo refactor this method is already ove
 		local spec = get_player_spec()
 		local target_series = nil
 
+		local encounter_id = lookup_state.active_encounter
+		local encounter_diff = lookup_state.difficultyID
 
-		if db.lookup[spec] ~= nil then
-			if db.lookup[spec][encounter_id] ~= nil then
-				target_series = db.lookup[spec][encounter_id][match_ranking]
-			else
-				print("Could not find data for encounter: " .. encounter_id)
+		if encounter_id == -1 then -- we are not in encounter
+			if dummy_enabled then
+				encounter_id = dummy_encounter
+				encounter_diff = 5
 			end
+		end
+
+		if encounter_id ~= -1 and encounter_diff == 5 then  -- 5 = mythic, we only have this data
+
+			if db.lookup[spec] ~= nil then
+				if db.lookup[spec][encounter_id] ~= nil then
+					target_series = db.lookup[spec][encounter_id][match_ranking]
+				else
+					print("Could not find data for encounter: " .. encounter_id)
+				end
+			else
+				print("Could not find data for spec: " .. spec)
+			end
+
+
+			local target_series_len = db.lookup[spec][encounter_id].length
+
+			local role = get_role(class, spec)
+			local cumulative_amt = get_current_amount(role)
+
+
+			if seconds < target_series_len then
+				local timeSerVal = target_series[seconds + 1] -- 1 indexed..
+				local metric_diff = cumulative_amt - timeSerVal
+				frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
+				final_target_amount = timeSerVal
+				final_player_amount = cumulative_amt
+				final_diff = metric_diff
+			end
+
+			C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
 		else
-			print("Could not find data for spec: " .. spec)
+			end_combat_session()
 		end
-
-
-		local target_series_len = db.lookup[spec][encounter_id].length
-
-		local role = get_role(class, spec)
-		local cumulative_amt = get_current_amount(role)
-
-
-		if seconds < target_series_len then
-			local timeSerVal = target_series[seconds + 1] -- 1 indexed..
-			local metric_diff = cumulative_amt - timeSerVal
-			frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
-			final_target_amount = timeSerVal
-			final_player_amount = cumulative_amt
-			final_diff = metric_diff
-		end
-
-		C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
 	end
 end
 
@@ -72,6 +93,10 @@ function format_amount( num )
 		return string.format("%.2f", (num / thousand)) .. "k"
 	end
 	return string.format("%.2f", num)
+end
+
+function end_combat_session()  --different from end combat, this should be called on invalid session (e.g not encounter)
+	frame.text:SetText("No encounter")
 end
 
 
@@ -105,6 +130,9 @@ end
 
 function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	inCombat = false
+	lookup_state.active_encounter = -1
+	lookup_state.difficultyID = -1
+
 	local t = get_current_time_step()
 	local msg = "Final value against rank " .. match_ranking .. ":\n" .. 
 		" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
@@ -113,7 +141,11 @@ function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	frame.text:SetText(msg)
 end
 
--- ENCOUNTER_START todo
+function events:ENCOUNTER_START (...)
+	local encounterID, _ , difficultyID, _ = ...
+	lookup_state.active_encounter = encounterID
+	lookup_state.difficultyID = difficultyID
+end
 
 local function initFrame(frame)
 	frame:SetMovable(true)
