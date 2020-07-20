@@ -6,6 +6,7 @@ local dummy_encounter = 2329
 local dummy_enabled = true
 local default_text = "Target rank: " .. match_ranking
 local background_enabled = true
+local output_type = "second"  -- second, cumulative
 
 --temp config todo dynamically determine database on startup
 
@@ -17,14 +18,18 @@ local in_session = false
 local final_target_amount = -1
 local final_player_amount = -1
 local final_diff = -1
+local final_aps = -1
+local final_target_aps = -1
+local final_aps_diff = -1
 local lookup_state = {  -- todo need global object RTRank
 	["active_encounter"] = -1,
 	["difficultyID"] = -1,
 	["startTime"] = nil
 }
 
---main loop, handles steps
-local function updateCounter()
+--todo move all of these to backend module
+--main (recursive) loop
+local function step()
 	if inCombat then
 		local spec = get_player_spec()
 
@@ -73,18 +78,34 @@ function updateDisplay(db, encounter_id, target_series)
 
 	local cumulative_amt = get_current_amount(role)
 
-	if seconds < target_series_len then -- todo show dps instead of cumulative dmg
+	if seconds < target_series_len then
 		local timeSerVal = target_series[seconds + 1] -- 1 indexed..
 		local metric_diff = cumulative_amt - timeSerVal
 
+		--todo refactor
 		final_target_amount = timeSerVal
 		final_player_amount = cumulative_amt
 		final_diff = metric_diff
+		if seconds == 0 then
+			final_aps = 0
+			final_target_aps = 0
+			final_aps_diff = 0
+		else
+			final_aps = cumulative_amt / seconds
+			final_target_aps = timeSerVal / seconds
+			final_aps_diff = metric_diff / seconds
+		end
 
-		frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
+		local new_text = ""
+		if output_type == "cumulative" then
+			new_text = "Target(" .. match_ranking .. "): " .. format_amount(final_target_amount) .. "\nRelative performance: " .. format_amount(final_diff)
+		elseif output_type == "second" then
+			new_text = "Target(" .. match_ranking .. "): " .. format_amount(final_target_aps) .. "\nRelative performance: " .. format_amount(final_aps_diff)
+		end
+		frame.text:SetText(new_text)
 		updateBackground(frame)
 
-		C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
+		C_Timer.After(1, step) --todo handle last partial second, these events are lost atm
 	else
 		print("RTRank: Exceeded max time steps(" .. seconds .. ") for comparison, stopping updates")
 	end
@@ -129,7 +150,7 @@ function events:PLAYER_ENTERING_WORLD(...)
 
 	if background_enabled then
 		local t = f:CreateTexture(nil,"BACKGROUND")
-		t:SetColorTexture(0,0,0, 0.8)
+		t:SetColorTexture(0,0,0, 0.5)
 		t:SetAllPoints(f)
 		f.texture = t
 	end
@@ -155,7 +176,7 @@ function events:PLAYER_REGEN_DISABLED (...) --enter combat
 	inCombat = true
 	combatStartTime = GetTime()
 
-	updateCounter()
+	step()
 end
 
 function events:PLAYER_REGEN_ENABLED (...) -- left combat
@@ -165,9 +186,16 @@ function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	local t = get_current_time_step()
 
 	if in_session then  -- execute final commands before ending session
-		local msg = "Final value against rank " .. match_ranking .. ":\n" ..
-		" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
-		"\nYou: " .. format_amount(final_player_amount) .. "\nDiff: " .. format_amount(final_diff);
+		local msg = ""
+		if output_type == "cumulative" then
+			msg = "Final value against rank " .. match_ranking .. ":\n" ..
+			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
+			"\nYou: " .. format_amount(final_player_amount) .. "\nDiff: " .. format_amount(final_diff);
+		elseif output_type == "second" then
+			msg = "Final value against rank " .. match_ranking .. ":\n" ..
+			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_aps) ..
+			"\nYou: " .. format_amount(final_aps) .. "\nDiff: " .. format_amount(final_aps_diff);
+		end
 
 		frame.text:SetText(msg)
 		updateBackground(frame)
