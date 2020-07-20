@@ -3,11 +3,11 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 --config
 local match_ranking = 1
 local dummy_encounter = 2329
-local dummy_enabled = false
+local dummy_enabled = true
 local default_text = "Target rank: " .. match_ranking
+local background_enabled = true
 
 --temp config todo dynamically determine database on startup
-
 
 db = Database_Priest
 
@@ -17,24 +17,22 @@ local in_session = false
 local final_target_amount = -1
 local final_player_amount = -1
 local final_diff = -1
-local lookup_state = {
+local lookup_state = {  -- todo need global object RTRank
 	["active_encounter"] = -1,
 	["difficultyID"] = -1,
 	["startTime"] = nil
 }
 
 --main loop, handles steps
-local function updateCounter() --todo refactor this method is already overloaded
+local function updateCounter()
 	if inCombat then
-		local seconds = get_current_time_step()
-
-		local class = get_player_class()
 		local spec = get_player_spec()
-		local target_series = nil
 
+		local target_series = nil
 		local encounter_id = lookup_state.active_encounter
 		local encounter_diff = lookup_state.difficultyID
 
+		-- dummy for testing
 		if encounter_id == -1 then -- we are not in encounter
 			if dummy_enabled then
 				encounter_id = dummy_encounter
@@ -48,34 +46,47 @@ local function updateCounter() --todo refactor this method is already overloaded
 				if db.lookup[spec][encounter_id] ~= nil then
 					target_series = db.lookup[spec][encounter_id][match_ranking]
 				else
-					print("Could not find data for encounter: " .. encounter_id)
+					print("RTRank: Could not find data for encounter: " .. encounter_id)
 				end
 			else
-				print("Could not find data for spec: " .. spec)
+				print("RTRank: Could not find data for spec: " .. spec)
 			end
 
-
-			local target_series_len = db.lookup[spec][encounter_id].length
-
-			local role = get_role(class, spec)
-			local cumulative_amt = get_current_amount(role)
-
-
-			if seconds < target_series_len then -- todo show dps instead of cumulative dmg
-				local timeSerVal = target_series[seconds + 1] -- 1 indexed..
-				local metric_diff = cumulative_amt - timeSerVal
-				frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
-				final_target_amount = timeSerVal
-				final_player_amount = cumulative_amt
-				final_diff = metric_diff
-
-				C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
+			if target_series ~= nil then
+				updateDisplay(db, encounter_id, target_series)
 			else
-				print("Exceeded max time steps for comparison, stopping updates")
+				end_combat_session(false)
 			end
 		else
-			end_combat_session()
+			end_combat_session(false)
 		end
+	end
+end
+
+function updateDisplay(db, encounter_id, target_series)
+	local seconds = get_current_time_step()
+	local class = get_player_class()
+	local spec = get_player_spec()
+	local role = get_role(class, spec)
+
+	local target_series_len = db.lookup[spec][encounter_id].length
+
+	local cumulative_amt = get_current_amount(role)
+
+	if seconds < target_series_len then -- todo show dps instead of cumulative dmg
+		local timeSerVal = target_series[seconds + 1] -- 1 indexed..
+		local metric_diff = cumulative_amt - timeSerVal
+
+		final_target_amount = timeSerVal
+		final_player_amount = cumulative_amt
+		final_diff = metric_diff
+
+		frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
+		updateBackground(frame)
+
+		C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
+	else
+		print("RTRank: Exceeded max time steps(" .. seconds .. ") for comparison, stopping updates")
 	end
 end
 
@@ -91,25 +102,22 @@ function get_current_time_step()
 	end
 end
 
-function format_amount( num )
-	if num == 0 then -- lua doesn't like to divide zero
-		return 0
-	end
 
-	local thousand = 1000
-	local million = 1000000
-	if math.abs(num) > thousand then
-		if math.abs(num) > million then
-			return string.format("%.2f", (num / million)) .. "m"
-		end
-		return string.format("%.2f", (num / thousand)) .. "k"
-	end
-	return string.format("%.2f", num)
-end
-
-function end_combat_session()  --different from end combat, this should be called on invalid session (e.g not encounter)
+function end_combat_session(override_text)  --different from end combat, this should be called on invalid session (e.g not encounter)
 	in_session = false
-	frame.text:SetText(default_text)
+
+	local encounter = lookup_state.active_encounter
+	if encounter ~= -1 then
+		print("RTRank: Ending combat session for encounter " .. encounter)
+	else
+		print("TMP: RTRank: Ending combat session")
+	end
+
+	if not override_text then
+		frame.text:SetText(default_text)
+		updateBackground(frame)
+	end
+
 end
 
 
@@ -119,12 +127,12 @@ function events:PLAYER_ENTERING_WORLD(...)
 	f:SetWidth(140) -- Set these to whatever height/width is needed
 	f:SetHeight(64) -- for your Texture
 
-	--todo maybe create dynamically resizing background wrt text
-
-	--local t = f:CreateTexture(nil,"BACKGROUND")
-	--t:SetColorTexture(0,0,0, 0.8)--"Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
-	--t:SetAllPoints(f)
-	--f.texture = t
+	if background_enabled then
+		local t = f:CreateTexture(nil,"BACKGROUND")
+		t:SetColorTexture(0,0,0, 0.8)
+		t:SetAllPoints(f)
+		f.texture = t
+	end
 
 	f:SetPoint("CENTER",200,-100)
 
@@ -132,7 +140,15 @@ function events:PLAYER_ENTERING_WORLD(...)
 	f.text:SetFont("Fonts\\ARIALN.ttf", 13, "OUTLINE")
 	f.text:SetPoint("CENTER",0,0)
 	f.text:SetText(default_text)
+
+	updateBackground(f)
+
 	f:Show()
+end
+
+function updateBackground(frame)
+	local width = frame.text:GetStringWidth()
+	frame:SetWidth(width)
 end
 
 function events:PLAYER_REGEN_DISABLED (...) --enter combat
@@ -146,16 +162,17 @@ function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	inCombat = false
 	lookup_state.active_encounter = -1
 	lookup_state.difficultyID = -1
-
 	local t = get_current_time_step()
+
 	if in_session then  -- execute final commands before ending session
 		local msg = "Final value against rank " .. match_ranking .. ":\n" ..
 		" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
 		"\nYou: " .. format_amount(final_player_amount) .. "\nDiff: " .. format_amount(final_diff);
 
 		frame.text:SetText(msg)
+		updateBackground(frame)
 
-		end_combat_session()
+		end_combat_session(true)
 	end
 end
 
@@ -164,7 +181,7 @@ function events:ENCOUNTER_START (...)
 	lookup_state.active_encounter = encounterID
 	lookup_state.difficultyID = difficultyID
 	lookup_state.startTime = GetTime()
-	print("Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
+	print("RTRank: Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
 end
 
 local function initFrame(frame)
@@ -182,56 +199,8 @@ local function initFrame(frame)
 	end
 end
 
---function printDB()
---	for idx,v in pairs(db.lookup) do
---		print(idx .. " : " .. v)
---	end
---end
-
-
--- todo new file probably
-local details = _G.Details
-
-function get_current_amount( metric_type )
-	if metric_type == "healer" then
-		local actor = details:GetActor ("current", DETAILS_ATTRIBUTE_HEAL, UnitName ("player"))
-		if actor ~= nil then
-			return actor.total
-		else
-			return 0
-		end
-	end
-	if metric_type == "damage" then
-		local actor = details:GetActor("current", DETAILS_ATTRIBUTE_DAMAGE, UnitName ("player")) --default damage, current combat
-		if actor ~= nil then
-			return actor.total
-		else
-			return 0
-		end
-	end
-end
-
-function get_player_class( ... )
-	local playerClass, _ = UnitClass("player");
-	return playerClass
-end
-
-function get_player_spec()
-	local currentSpec = GetSpecialization()
-	local currentSpecName = currentSpec and select(2, GetSpecializationInfo(currentSpec)) or "None"
-	return currentSpecName
-end
-
-function get_role(player_class, player_spec )
-	local role = Constants["Rolemap"][player_class][player_spec]
-	if role == nil then
-		print("RTRank: Unable to find role in rolemap for class: " .. player_class .. ", spec: " .. player_spec)
-	end
-	return role
-end
 
 initFrame(frame)
---printDB()
 
 --TODOs:
 --Feature 2: functionality to specify rank for comparison as user-setting (maybe just have a config file at first)

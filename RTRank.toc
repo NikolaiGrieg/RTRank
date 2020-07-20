@@ -3,4 +3,6 @@
 ## Notes: My first AddOn
 data/DatabasePriest.lua
 Constants.lua
+Utilities.lua
+MeterRepository.lua
 FrontEnd.lua
