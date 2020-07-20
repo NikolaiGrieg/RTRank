@@ -32,3 +32,16 @@ function format_amount( num )
 	end
 	return string.format("%.2f", num)
 end
+
+function get_current_time_step()
+	--- uses encounter start if in encounter, else combat start
+
+	local encounterStart = RTRank.lookupState.startTime
+	local nowTime = GetTime()
+
+	if encounterStart ~= nil then
+		return math.floor(nowTime - encounterStart)
+	else
+		return math.floor(nowTime - combatStartTime)
+	end
+end
