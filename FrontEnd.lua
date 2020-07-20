@@ -4,6 +4,7 @@ local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 local match_ranking = 1
 local dummy_encounter = 2329
 local dummy_enabled = false
+local default_text = "Target rank: " .. match_ranking
 
 --temp config todo dynamically determine database on startup
 
@@ -12,15 +13,18 @@ db = Database_Priest
 
 --vars
 inCombat = false
+local in_session = false
 local final_target_amount = -1
 local final_player_amount = -1
 local final_diff = -1
 local lookup_state = {
 	["active_encounter"] = -1,
-	["difficultyID"] = -1
+	["difficultyID"] = -1,
+	["startTime"] = nil
 }
 
-local function updateCounter(counter) --todo refactor this method is already overloaded
+--main loop, handles steps
+local function updateCounter() --todo refactor this method is already overloaded
 	if inCombat then
 		local seconds = get_current_time_step()
 
@@ -38,8 +42,8 @@ local function updateCounter(counter) --todo refactor this method is already ove
 			end
 		end
 
-		if encounter_id ~= -1 and encounter_diff == 5 then  -- 5 = mythic, we only have this data
-
+		if encounter_id ~= -1 then  -- 5 = mythic, we only have this data --encounter_diff == 5
+			in_session = true
 			if db.lookup[spec] ~= nil then
 				if db.lookup[spec][encounter_id] ~= nil then
 					target_series = db.lookup[spec][encounter_id][match_ranking]
@@ -57,31 +61,39 @@ local function updateCounter(counter) --todo refactor this method is already ove
 			local cumulative_amt = get_current_amount(role)
 
 
-			if seconds < target_series_len then
+			if seconds < target_series_len then -- todo show dps instead of cumulative dmg
 				local timeSerVal = target_series[seconds + 1] -- 1 indexed..
 				local metric_diff = cumulative_amt - timeSerVal
 				frame.text:SetText("Target(" .. match_ranking .. "): " .. format_amount(timeSerVal) .. "\nRelative performance: " .. format_amount(metric_diff))
 				final_target_amount = timeSerVal
 				final_player_amount = cumulative_amt
 				final_diff = metric_diff
-			end
 
-			C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
+				C_Timer.After(1, updateCounter) --todo handle last partial second, these events are lost atm
+			else
+				print("Exceeded max time steps for comparison, stopping updates")
+			end
 		else
 			end_combat_session()
 		end
 	end
 end
 
+--- uses encounter start if in encounter, else combat start
 function get_current_time_step()
+	local encounterStart = lookup_state.startTime
 	local nowTime = GetTime()
-	local t = math.floor(nowTime - startTime)
-	return t
+
+	if encounterStart ~= nil then
+		return math.floor(nowTime - encounterStart)
+	else
+		return math.floor(nowTime - combatStartTime)
+	end
 end
 
 function format_amount( num )
 	if num == 0 then -- lua doesn't like to divide zero
-		return 0 
+		return 0
 	end
 
 	local thousand = 1000
@@ -96,14 +108,15 @@ function format_amount( num )
 end
 
 function end_combat_session()  --different from end combat, this should be called on invalid session (e.g not encounter)
-	frame.text:SetText("No encounter")
+	in_session = false
+	frame.text:SetText(default_text)
 end
 
 
 function events:PLAYER_ENTERING_WORLD(...)
 	local f = frame
 	f:SetFrameStrata("BACKGROUND")
-	f:SetWidth(140) -- Set these to whatever height/width is needed 
+	f:SetWidth(140) -- Set these to whatever height/width is needed
 	f:SetHeight(64) -- for your Texture
 
 	--todo maybe create dynamically resizing background wrt text
@@ -115,16 +128,17 @@ function events:PLAYER_ENTERING_WORLD(...)
 
 	f:SetPoint("CENTER",200,-100)
 
-	f.text = f:CreateFontString(nil,"ARTWORK") 
+	f.text = f:CreateFontString(nil,"ARTWORK")
 	f.text:SetFont("Fonts\\ARIALN.ttf", 13, "OUTLINE")
 	f.text:SetPoint("CENTER",0,0)
-	f.text:SetText("Target rank: " .. match_ranking)
+	f.text:SetText(default_text)
 	f:Show()
 end
 
 function events:PLAYER_REGEN_DISABLED (...) --enter combat
 	inCombat = true
-	startTime = GetTime()
+	combatStartTime = GetTime()
+
 	updateCounter()
 end
 
@@ -134,17 +148,23 @@ function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	lookup_state.difficultyID = -1
 
 	local t = get_current_time_step()
-	local msg = "Final value against rank " .. match_ranking .. ":\n" .. 
+	if in_session then  -- execute final commands before ending session
+		local msg = "Final value against rank " .. match_ranking .. ":\n" ..
 		" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
 		"\nYou: " .. format_amount(final_player_amount) .. "\nDiff: " .. format_amount(final_diff);
 
-	frame.text:SetText(msg)
+		frame.text:SetText(msg)
+
+		end_combat_session()
+	end
 end
 
 function events:ENCOUNTER_START (...)
 	local encounterID, _ , difficultyID, _ = ...
 	lookup_state.active_encounter = encounterID
 	lookup_state.difficultyID = difficultyID
+	lookup_state.startTime = GetTime()
+	print("Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
 end
 
 local function initFrame(frame)
@@ -162,11 +182,11 @@ local function initFrame(frame)
 	end
 end
 
-function printDB()
-	for idx,v in pairs(db.lookup) do
-		print(idx .. " : " .. v)
-	end
-end
+--function printDB()
+--	for idx,v in pairs(db.lookup) do
+--		print(idx .. " : " .. v)
+--	end
+--end
 
 
 -- todo new file probably
@@ -214,7 +234,6 @@ initFrame(frame)
 --printDB()
 
 --TODOs:
---Get class, spec, encounter ID on encounter start, to identify correct table.
 --Feature 2: functionality to specify rank for comparison as user-setting (maybe just have a config file at first)
 --Then presentation could use some polish
 --Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)

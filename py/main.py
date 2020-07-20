@@ -59,7 +59,7 @@ def generate_data_for_spec(playerclass, playerspec):
     encounters = get_encounter_id_map()
     encounter_ids = encounters.values()
 
-    encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
+    #encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
     spec_name = playerclass.get_spec_name_from_idx(playerspec)
 
     processed_data = get_processed_data()
@@ -103,5 +103,4 @@ if __name__ == '__main__':
         print(f"Processing spec {specname}({spec})")
         generate_data_for_spec(playerclass, spec)
 
-    # todo infer encounterid
     # todo user configurable target rank + more classes
