@@ -18,7 +18,8 @@ RTRank.encounterState = {
 RTRank.lookupState = {
 	["active_encounter"] = -1,
 	["difficultyID"] = -1,
-	["startTime"] = nil
+	["startTime"] = nil,
+	["combatStartTime"] = -1
 }
 
 --config
@@ -63,7 +64,7 @@ end
 
 function events:PLAYER_REGEN_DISABLED (...) --enter combat
 	inCombat = true
-	combatStartTime = GetTime()
+	RTRank.lookupState.combatStartTime = GetTime()
 
 	RTRank:step()
 end
@@ -72,19 +73,19 @@ function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	inCombat = false
 	RTRank.lookupState.active_encounter = -1
 	RTRank.lookupState.difficultyID = -1
-	local t = get_current_time_step()
+	local t = RTRank.utils:get_current_time_step()
 	local state = RTRank.encounterState
 
 	if RTRank.encounterState.in_session then  -- execute final commands before ending session
 		local msg = ""
 		if RTRank.config.output_type == "cumulative" then
 			msg = "Final value against rank " .. RTRank.config.match_ranking .. ":\n" ..
-			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(state.target_amount) ..
-			"\nYou: " .. format_amount(state.player_amount) .. "\nDiff: " .. format_amount(stat.diff);
+			" At t = " .. t .. ":" .. "\nTarget: " .. RTRank.utils:format_amount(state.target_amount) ..
+			"\nYou: " .. RTRank.utils:format_amount(state.player_amount) .. "\nDiff: " .. RTRank.utils:format_amount(stat.diff);
 		elseif RTRank.config.output_type == "second" then
 			msg = "Final value against rank " .. RTRank.config.match_ranking .. ":\n" ..
-			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(state.target_aps) ..
-			"\nYou: " .. format_amount(state.player_aps) .. "\nDiff: " .. format_amount(state.aps_diff);
+			" At t = " .. t .. ":" .. "\nTarget: " .. RTRank.utils:format_amount(state.target_aps) ..
+			"\nYou: " .. RTRank.utils:format_amount(state.player_aps) .. "\nDiff: " .. RTRank.utils:format_amount(state.aps_diff);
 		end
 		RTRank:updateText(msg)
 

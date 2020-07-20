@@ -4,8 +4,8 @@ function RTRank:step() --todo refactor further
 	---main (recursive) loop
 	if inCombat then
 		local lookup_state = RTRank.lookupState
-        local db = RTRank.lookupState.db
-		local spec = get_player_spec()
+        local db = lookup_state.db
+		local spec = RTRank.utils:get_player_spec()
 
 		local target_series = nil
 		local encounter_id = lookup_state.active_encounter
@@ -43,10 +43,10 @@ function RTRank:step() --todo refactor further
 end
 
 function updateDisplay(db, encounter_id, target_series)
-	local seconds = get_current_time_step()
-	local class = get_player_class()
-	local spec = get_player_spec()
-	local role = get_role(class, spec)
+	local seconds = RTRank.utils:get_current_time_step()
+	local class = RTRank.utils:get_player_class()
+	local spec = RTRank.utils:get_player_spec()
+	local role = RTRank.utils:get_role(class, spec)
 
 	local target_series_len = db.lookup[spec][encounter_id].length -- todo also get the playername for target rank as metadata
 
@@ -60,9 +60,13 @@ function updateDisplay(db, encounter_id, target_series)
 
 		local new_text = ""
 		if RTRank.config.output_type == "cumulative" then
-			new_text = "Target(" .. RTRank.config.match_ranking .. "): " .. format_amount(state.target_amount) .. "\nRelative performance: " .. format_amount(state.diff)
+			new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
+					RTRank.utils:format_amount(state.target_amount) .. "\nRelative performance: " ..
+					RTRank.utils:format_amount(state.diff)
 		elseif RTRank.config.output_type == "second" then
-			new_text = "Target(" .. RTRank.config.match_ranking .. "): " .. format_amount(state.target_aps) .. "\nRelative performance: " .. format_amount(state.aps_diff)
+			new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
+					RTRank.utils:format_amount(state.target_aps) .. "\nRelative performance: " ..
+					RTRank.utils:format_amount(state.aps_diff)
 		end
 
 		RTRank:updateText(new_text)
@@ -75,7 +79,7 @@ end
 
 
 function RTRank.encounterState:updateState(cumulative_player, cumulative_target)
-	local seconds = get_current_time_step()
+	local seconds = RTRank.utils:get_current_time_step()
 
 	local metric_diff = cumulative_player - cumulative_target
 

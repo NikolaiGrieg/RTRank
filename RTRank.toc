@@ -4,7 +4,7 @@
 data/DatabasePriest.lua
 
 Constants.lua
-Utilities.lua
 MeterRepository.lua
 FrontEnd.lua
 BackEnd.lua
+Utilities.lua
