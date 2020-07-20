@@ -15,21 +15,26 @@ db = Database_Priest
 --vars
 inCombat = false
 local in_session = false
-local final_target_amount = -1
-local final_player_amount = -1
-local final_diff = -1
-local final_aps = -1
-local final_target_aps = -1
-local final_aps_diff = -1
-local lookup_state = {  -- todo need global object RTRank
+local lookup_state = {
 	["active_encounter"] = -1,
 	["difficultyID"] = -1,
 	["startTime"] = nil
 }
 
+--todo need to make this global
+RTRank = {}
+RTRank.encounterState = {
+	["player_amount"] = -1,
+	["target_amount"] = -1,
+	["diff"] = -1,
+	["player_aps"] = -1,
+	["target_aps"] = -1,
+	["aps_diff"] = -1,
+}
+
 --todo move all of these to backend module
---main (recursive) loop
 local function step()
+	---main (recursive) loop
 	if inCombat then
 		local spec = get_player_spec()
 
@@ -74,33 +79,21 @@ function updateDisplay(db, encounter_id, target_series)
 	local spec = get_player_spec()
 	local role = get_role(class, spec)
 
-	local target_series_len = db.lookup[spec][encounter_id].length
+	local target_series_len = db.lookup[spec][encounter_id].length -- todo also get the playername for target rank as metadata
 
 	local cumulative_amt = get_current_amount(role)
 
 	if seconds < target_series_len then
 		local timeSerVal = target_series[seconds + 1] -- 1 indexed..
-		local metric_diff = cumulative_amt - timeSerVal
 
-		--todo refactor
-		final_target_amount = timeSerVal
-		final_player_amount = cumulative_amt
-		final_diff = metric_diff
-		if seconds == 0 then
-			final_aps = 0
-			final_target_aps = 0
-			final_aps_diff = 0
-		else
-			final_aps = cumulative_amt / seconds
-			final_target_aps = timeSerVal / seconds
-			final_aps_diff = metric_diff / seconds
-		end
+		updateState(cumulative_amt, timeSerVal)
+		local state = RTRank.encounterState
 
 		local new_text = ""
 		if output_type == "cumulative" then
-			new_text = "Target(" .. match_ranking .. "): " .. format_amount(final_target_amount) .. "\nRelative performance: " .. format_amount(final_diff)
+			new_text = "Target(" .. match_ranking .. "): " .. format_amount(state.target_amount) .. "\nRelative performance: " .. format_amount(state.diff)
 		elseif output_type == "second" then
-			new_text = "Target(" .. match_ranking .. "): " .. format_amount(final_target_aps) .. "\nRelative performance: " .. format_amount(final_aps_diff)
+			new_text = "Target(" .. match_ranking .. "): " .. format_amount(state.target_aps) .. "\nRelative performance: " .. format_amount(state.aps_diff)
 		end
 		frame.text:SetText(new_text)
 		updateBackground(frame)
@@ -121,6 +114,32 @@ function get_current_time_step()
 	else
 		return math.floor(nowTime - combatStartTime)
 	end
+end
+
+function updateState(cumulative_player, cumulative_target)
+	local state = RTRank.encounterState
+	local seconds = get_current_time_step()
+
+	local metric_diff = cumulative_player - cumulative_target
+
+	local aps = 0
+	local target_aps = 0
+	local aps_diff = 0
+
+	if seconds ~= 0 then
+		aps = cumulative_player / seconds
+		target_aps = cumulative_target / seconds
+		aps_diff = metric_diff / seconds
+	end
+
+	state.player_amount = cumulative_player
+	state.target_amount = cumulative_target
+	state.diff = metric_diff
+	state.player_aps = aps
+	state.target_aps = target_aps
+	state.aps_diff = aps_diff
+
+	RTRank.encounterState = state
 end
 
 
@@ -184,17 +203,18 @@ function events:PLAYER_REGEN_ENABLED (...) -- left combat
 	lookup_state.active_encounter = -1
 	lookup_state.difficultyID = -1
 	local t = get_current_time_step()
+	local state = RTRank.encounterState
 
 	if in_session then  -- execute final commands before ending session
 		local msg = ""
 		if output_type == "cumulative" then
 			msg = "Final value against rank " .. match_ranking .. ":\n" ..
-			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_amount) ..
-			"\nYou: " .. format_amount(final_player_amount) .. "\nDiff: " .. format_amount(final_diff);
+			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(state.target_amount) ..
+			"\nYou: " .. format_amount(state.player_amount) .. "\nDiff: " .. format_amount(stat.diff);
 		elseif output_type == "second" then
 			msg = "Final value against rank " .. match_ranking .. ":\n" ..
-			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(final_target_aps) ..
-			"\nYou: " .. format_amount(final_aps) .. "\nDiff: " .. format_amount(final_aps_diff);
+			" At t = " .. t .. ":" .. "\nTarget: " .. format_amount(state.target_aps) ..
+			"\nYou: " .. format_amount(state.player_aps) .. "\nDiff: " .. format_amount(state.aps_diff);
 		end
 
 		frame.text:SetText(msg)
