@@ -2,7 +2,7 @@ import math
 import pickle
 import time
 
-from py.static.PlayerClass import Priest, Druid
+from py.static.PlayerClass import Priest, Druid, Shaman
 from py.static.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
@@ -87,7 +87,8 @@ def get_processed_data(playerclass):
     :return: processed_specs = list over (partially) processed specs, processed_encounters = dict[spec] = [encounterIDs]
     """
     try:
-        with open(ROOT_DIR + f"\\data\\Database{playerclass.name}.pkl", 'rb') as f:  # todo this needs to be in some constants file
+        with open(ROOT_DIR + f"\\data\\Database{playerclass.name}.pkl",
+                  'rb') as f:  # todo this needs to be in some constants file
             master_frames = pickle.load(f)
     except FileNotFoundError:
         return None
@@ -103,7 +104,8 @@ def get_processed_data(playerclass):
 if __name__ == '__main__':
     start = time.time()
     # playerclass = Priest()
-    playerclass = Druid()
+    # playerclass = Druid()
+    playerclass = Shaman()
     for specname, spec in playerclass.specs.items():
         print(f"Processing spec {specname}({spec})")
         generate_data_for_spec(playerclass, spec)

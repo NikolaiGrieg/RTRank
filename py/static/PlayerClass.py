@@ -53,6 +53,21 @@ class Druid(PlayerClass):
     }
 
 
+class Shaman(PlayerClass):
+    name = "Shaman"
+    wcl_id = 9
+    specs = {
+        "Elemental": 1,
+        "Enhancement": 2,
+        "Restoration": 3
+    }
+    spec_roles = {
+        "Elemental": Role.DPS,
+        "Enhancement": Role.DPS,
+        "Restoration": Role.HPS
+    }
+
+
 class Mage(PlayerClass):
     wcl_id = 4
     name = "Mage"
