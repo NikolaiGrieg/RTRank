@@ -1,4 +1,19 @@
-RTRank.lookupState.db = Database_Priest -- todo do some class matching
+
+function RTRank:loadDataBase()
+	local class = RTRank.utils:get_player_class()
+	if class == "Priest" then
+		RTRank.lookupState.db = Database_Priest
+	elseif class == "Shaman" then
+		RTRank.lookupState.db = Database_Shaman
+	elseif class == "Druid" then
+		RTRank.lookupState.db = Database_Druid
+
+
+	else
+		print("RTRank: No data available for class: " .. class)
+	end
+
+end
 
 function RTRank:step() --todo refactor further
 	---main (recursive) loop

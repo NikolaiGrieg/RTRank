@@ -4,6 +4,8 @@
 ## Author: Oharp
 ## SavedVariables: RTRankConfig
 data/DatabasePriest.lua
+data/DatabaseDruid.lua
+data/DatabaseShaman.lua
 
 GlobalInitializer.lua
 MeterRepository.lua

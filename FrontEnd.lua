@@ -7,6 +7,7 @@ end
 -- todo event handlers should maybe not be in frontend file
 function RTRank.events:PLAYER_ENTERING_WORLD(...)
 	RTRank:loadStoredConfig()
+	RTRank:loadDataBase()
 	RTRank:renderFrame()
 end
 
@@ -59,7 +60,7 @@ function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refact
 	RTRank.lookupState.is_combat = true
 	RTRank.lookupState.combatStartTime = GetTime()
 
-	RTRank:step()
+	RTRank:step() -- first step
 end
 
 function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
