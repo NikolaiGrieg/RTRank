@@ -1,6 +1,8 @@
 ## Interface: 80300
 ## Title: RTRank
-## Notes: My first AddOn
+## Notes: Real time display of relative performance compared to any rank in wcl.
+## Author: Oharp
+## SavedVariables: RTRankConfig
 data/DatabasePriest.lua
 
 GlobalInitializer.lua
@@ -8,4 +10,5 @@ MeterRepository.lua
 FrontEnd.lua
 BackEnd.lua
 Utilities.lua
+ConfigHandler.lua
 Main.lua

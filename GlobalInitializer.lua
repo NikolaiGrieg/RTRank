@@ -35,11 +35,26 @@ RTRank.lookupState = {
 }
 
 --config
-RTRank.config = {
-	["match_ranking"] = 1,
-	["dummy_encounter"] = 2329,
-	["dummy_enabled"] = true,
-	["background_enabled"] = true,
-	["output_type"] = "second",  -- second, cumulative
-}
-RTRank.config["default_text"] = "Target rank: " .. RTRank.config.match_ranking
+if RTRankConfig ~= nil then
+	RTRank.config = RTRankConfig
+	--print("using stored RTRankConfig")
+else
+	RTRank.config = {
+		["match_ranking"] = 1,
+		["dummy_encounter"] = 2329,
+		["dummy_enabled"] = true,
+		["background_enabled"] = true,
+		["output_type"] = "second",  -- second, cumulative
+	}
+
+	RTRankConfig = RTRank.config -- todo does this reference or copy?
+	--print("stored: " .. RTRankConfig.match_ranking)
+	--print("RTRank: " .. RTRank.config.match_ranking)
+end
+
+
+-- slash commands
+SLASH_RTRANK1 = "/rtr";
+function SlashCmdList.RTRANK(msg)
+	RTRank.config:handleSlashCommand(msg)
+end

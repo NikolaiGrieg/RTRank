@@ -26,12 +26,13 @@ function RTRank.events:PLAYER_ENTERING_WORLD(...)
 	f.text = f:CreateFontString(nil,"ARTWORK")
 	f.text:SetFont("Fonts\\ARIALN.ttf", 13, "OUTLINE")
 	f.text:SetPoint("CENTER",0,0)
-	RTRank:updateText(RTRank.config.default_text)
+	RTRank:setDefaultText()
 
 	f:Show()
 end
 function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refactor these
 	inCombat = true
+	RTRank.lookupState.is_combat = true
 	RTRank.lookupState.combatStartTime = GetTime()
 
 	RTRank:step()
@@ -39,6 +40,7 @@ end
 
 function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
 	inCombat = false
+	RTRank.lookupState.is_combat = false
 	RTRank.lookupState.active_encounter = -1
 	RTRank.lookupState.difficultyID = -1
 	local t = RTRank.utils:get_current_time_step()
@@ -69,6 +71,10 @@ function RTRank.events:ENCOUNTER_START (...)
 	RTRank.lookupState.difficultyID = difficultyID
 	RTRank.lookupState.startTime = GetTime()
 	print("RTRank: Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
+end
+
+function RTRank:setDefaultText()
+	self.frame.text:SetText(self.config:getDefaultText())
 end
 
 
