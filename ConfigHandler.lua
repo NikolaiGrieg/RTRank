@@ -16,12 +16,20 @@ function RTRank:handleSlashCommand(msg)
 			print("Toggled background off")
 		end
 	elseif cmd == "output" then
-		print("PH output")
+		if args == "second" then
+			self.config.output_type = "second"
+			print("Switched to output type \"second\"")
+		elseif args == "cumulative" or args == "total" then
+			self.config.output_type = "cumulative"
+			print("Switched to output type \"cumulative\"")
+		else
+			print("RTRank: output type not recognized, allowed types are: second, cumulative (total)")
+		end
 	elseif cmd == "reset" then
 		self:resetState()
 	elseif cmd == "dumpdb" then -- todo parse spec
 		print("PH dumpdb") -- todo print db in a nice format
-	end
+		end
 	self:updateStoredVars()
 end
 
@@ -65,9 +73,7 @@ end
 function RTRank:loadStoredConfig()
 	if RTRankConfig ~= nil then
 		self.config = RTRankConfig
-		print("using stored RTRankConfig")
 	else
-		print("no stored vars found")
 		RTRankConfig = self.config
 	end
 end
