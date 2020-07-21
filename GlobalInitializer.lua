@@ -34,14 +34,17 @@ RTRank.lookupState = {
 	["combatStartTime"] = -1
 }
 
---config defaults, overridden from saved variable RTRankConfig
-RTRank.config = {
+--config defaults, overridden from saved variable RTRankConfig on PlayerEnterWorld
+RTRank.default_config = {
 		["match_ranking"] = 1,
 		["dummy_encounter"] = 2329,
 		["dummy_enabled"] = true,
 		["background_enabled"] = true,
-		["output_type"] = "second",  -- second, cumulative
+		["output_type"] = "second",  -- second, cumulative,
+		["xOfs"] = 880,
+		["yOfs"] = -450
 	}
+RTRank.config = RTRank.default_config
 
 
 -- slash commands

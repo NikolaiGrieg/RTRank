@@ -17,9 +17,25 @@ function RTRank:handleSlashCommand(msg)
 		end
 	elseif cmd == "output" then
 		print("PH output")
+	elseif cmd == "reset" then
+		self:resetState()
 	elseif cmd == "dumpdb" then -- todo parse spec
 		print("PH dumpdb") -- todo print db in a nice format
 	end
+	self:updateStoredVars()
+end
+
+function RTRank:resetState()
+	print("Resetting to default settings")
+	self.config = self.default_config
+	self.frame:SetPoint("CENTER", self.config.xOfs, self.config.yOfs)
+	self.updateStoredVars()
+end
+
+function RTRank:setFramePosition(xOfs, yOfs)
+	self.config.xOfs = xOfs
+	self.config.yOfs = yOfs
+
 	self.updateStoredVars()
 end
 

@@ -4,7 +4,7 @@ function RTRank:updateText(msg)
 	self.frame:SetWidth(width)
 end
 
--- todo event handlers should maybe not be in front end file
+-- todo event handlers should maybe not be in frontend file
 function RTRank.events:PLAYER_ENTERING_WORLD(...)
 	RTRank:loadStoredConfig()
 	RTRank:renderFrame()
@@ -24,7 +24,7 @@ function RTRank:renderFrame()
 		t:Hide()
 	end
 
-	f:SetPoint("CENTER",200,-100)
+	f:SetPoint("TOPLEFT", RTRank.config.xOfs, RTRank.config.yOfs)
 
 	f.text = f:CreateFontString(nil,"ARTWORK")
 	f.text:SetFont("Fonts\\ARIALN.ttf", 13, "OUTLINE")
@@ -35,8 +35,15 @@ function RTRank:renderFrame()
 	f:EnableMouse(true)
 	f:RegisterForDrag("LeftButton")
 	f:SetScript("OnDragStart", self.frame.StartMoving)
-	f:SetScript("OnDragStop", self.frame.StopMovingOrSizing)
+	f:SetScript("OnDragStop", dragStop)
 	f:Show()
+end
+
+function dragStop()
+	local _, _, _, xOfs, yOfs = RTRank.frame:GetPoint()
+
+	RTRank:setFramePosition(xOfs, yOfs)
+	RTRank.frame:StopMovingOrSizing()
 end
 
 function RTRank:updateBackground()
@@ -109,7 +116,7 @@ function RTRank:initEvents()
 end
 
 --TODOs:
---Feature 2: functionality to specify rank for comparison as user-setting (maybe just have a config file at first)
+--Load data for all classes
 --Then presentation could use some polish
 --Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)
 
