@@ -1,14 +1,16 @@
 
 function RTRank:loadDataBase()
+	-- this will probably load all dbs into memory, need to break up into conditional loads if this is very large
 	local class = RTRank.utils:get_player_class()
-	if class == "Priest" then
-		RTRank.lookupState.db = Database_Priest
-	elseif class == "Shaman" then
-		RTRank.lookupState.db = Database_Shaman
-	elseif class == "Druid" then
-		RTRank.lookupState.db = Database_Druid
-
-
+	local meta_lookup = {
+		["Priest"] = Database_Priest,
+		["Shaman"] = Database_Shaman,
+		["Druid"] = Database_Druid,
+	}
+	local db = meta_lookup[class]
+	if db ~= nil then
+		--print(db.lookup["Elemental"][2327].rank_count)
+		RTRank.lookupState.db = db
 	else
 		print("RTRank: No data available for class: " .. class)
 	end
@@ -36,6 +38,7 @@ function RTRank:step() --todo refactor further
 
 		-- Adjust to closest rank if input rank doesn't exist
 		local target_series_rank_count = db.lookup[spec][encounter_id].rank_count
+
 		if target_series_rank_count < RTRank.config.match_ranking then
 			print("RTRank: No data available for requested rank " ..
 					RTRank.config.match_ranking .. " using closest (" .. target_series_rank_count .. ")")
