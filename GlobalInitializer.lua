@@ -48,8 +48,6 @@ else
 	}
 
 	RTRankConfig = RTRank.config -- todo does this reference or copy?
-	--print("stored: " .. RTRankConfig.match_ranking)
-	--print("RTRank: " .. RTRank.config.match_ranking)
 end
 
 

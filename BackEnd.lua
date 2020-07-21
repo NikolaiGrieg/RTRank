@@ -2,7 +2,7 @@ RTRank.lookupState.db = Database_Priest -- todo do some class matching
 
 function RTRank:step() --todo refactor further
 	---main (recursive) loop
-	if inCombat then
+	if RTRank.lookupState.is_combat then
 		local lookup_state = RTRank.lookupState
         local db = lookup_state.db
 		local spec = RTRank.utils:get_player_spec()

@@ -1,7 +1,3 @@
---vars
-inCombat = false
-
-
 function RTRank:updateText(msg)
 	self.frame.text:SetText(msg)
 	local width = self.frame.text:GetStringWidth()
@@ -31,7 +27,6 @@ function RTRank.events:PLAYER_ENTERING_WORLD(...)
 	f:Show()
 end
 function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refactor these
-	inCombat = true
 	RTRank.lookupState.is_combat = true
 	RTRank.lookupState.combatStartTime = GetTime()
 
@@ -39,7 +34,6 @@ function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refact
 end
 
 function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
-	inCombat = false
 	RTRank.lookupState.is_combat = false
 	RTRank.lookupState.active_encounter = -1
 	RTRank.lookupState.difficultyID = -1
