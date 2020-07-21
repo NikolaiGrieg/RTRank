@@ -6,10 +6,11 @@ function RTRank:loadDataBase()
 		["Priest"] = Database_Priest,
 		["Shaman"] = Database_Shaman,
 		["Druid"] = Database_Druid,
+		["Monk"] = Database_Monk,
+		["Paladin"] = Database_Paladin,
 	}
 	local db = meta_lookup[class]
 	if db ~= nil then
-		--print(db.lookup["Elemental"][2327].rank_count)
 		RTRank.lookupState.db = db
 	else
 		print("RTRank: No data available for class: " .. class)

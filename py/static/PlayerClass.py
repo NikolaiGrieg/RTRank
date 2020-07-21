@@ -68,6 +68,36 @@ class Shaman(PlayerClass):
     }
 
 
+class Monk(PlayerClass):
+    name = "Monk"
+    wcl_id = 5
+    specs = {
+        "Brewmaster": 1,
+        "Mistweaver": 2,
+        "Windwalker": 3
+    }
+    spec_roles = {
+        "Brewmaster": Role.DPS,
+        "Mistweaver": Role.HPS,
+        "Windwalker": Role.DPS
+    }
+
+
+class Paladin(PlayerClass):
+    name = "Paladin"
+    wcl_id = 6
+    specs = {
+        "Holy": 1,
+        "Protection": 2,
+        "Retribution": 3
+    }
+    spec_roles = {
+        "Holy": Role.HPS,
+        "Protection": Role.DPS,
+        "Retribution": Role.DPS
+    }
+
+
 class Mage(PlayerClass):
     wcl_id = 4
     name = "Mage"

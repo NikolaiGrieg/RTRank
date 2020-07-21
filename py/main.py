@@ -2,7 +2,7 @@ import math
 import pickle
 import time
 
-from py.static.PlayerClass import Priest, Druid, Shaman
+from py.static.PlayerClass import Priest, Druid, Shaman, Monk, Paladin
 from py.static.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
@@ -105,10 +105,12 @@ if __name__ == '__main__':
     start = time.time()
     # playerclass = Priest()
     # playerclass = Druid()
-    playerclass = Shaman()
-    for specname, spec in playerclass.specs.items():
-        print(f"Processing spec {specname}({spec})")
-        generate_data_for_spec(playerclass, spec)
+    # playerclass = Shaman()
+    classes = [Monk(), Paladin()]
+    for playerclass in classes:  # horribly slow
+        for specname, spec in playerclass.specs.items():
+            print(f"Processing spec {specname}({spec})")
+            generate_data_for_spec(playerclass, spec)
 
     print()
     print(f"Total time elapsed: {str(time.time() - start)}")
