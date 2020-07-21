@@ -71,21 +71,29 @@ function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
 
 	if RTRank.encounterState.in_session then  -- execute final commands before ending session
 		local msg = ""
-		if RTRank.config.output_type == "cumulative" then -- todo refactor strings
-			msg = "Final value against rank " .. RTRank.config.match_ranking ..  " ("
-					.. RTRank.utils:get_name_from_rank(RTRank.config.match_ranking, RTRank.config.dummy_encounter) .. ")" .. ":\n" ..
-			" At t = " .. t .. ":" .. "\nTarget: " .. RTRank.utils:format_amount(state.target_amount) ..
-			"\nYou: " .. RTRank.utils:format_amount(state.player_amount) .. "\nDiff: " .. RTRank.utils:format_amount(stat.diff);
+		if RTRank.config.output_type == "cumulative" then
+			msg = createFinalMessage(RTRank.config.match_ranking, state.player_amount, state.target_amount, state.diff)
 		elseif RTRank.config.output_type == "second" then
-			msg = "Final value against rank " .. RTRank.config.match_ranking  .. " ("
-					.. RTRank.utils:get_name_from_rank(RTRank.config.match_ranking, RTRank.config.dummy_encounter) .. ")".. ":\n" ..
-			" At t = " .. t .. ":" .. "\nTarget: " .. RTRank.utils:format_amount(state.target_aps) ..
-			"\nYou: " .. RTRank.utils:format_amount(state.player_aps) .. "\nDiff: " .. RTRank.utils:format_amount(state.aps_diff);
+			msg = createFinalMessage(RTRank.config.match_ranking, state.player_aps, state.target_aps, state.aps_diff)
 		end
 		RTRank:updateText(msg)
 
 		end_combat_session(true)
 	end
+end
+
+function createFinalMessage(rank, player, target, diff)
+	local encounter_id = RTRank.lookupState.active_encounter -- we should have this by this point
+	if encounter_id == -1 and RTRank.config.dummy_enabled then
+		encounter_id = RTRank.config.dummy_encounter
+	end
+	local t = RTRank.utils:get_current_time_step()
+
+	local msg = "Final value against rank " .. rank ..  " ("
+			.. RTRank.utils:get_name_from_rank(rank, encounter_id) .. ")" .. ":\n" ..
+	" At t = " .. t .. ":" .. "\nTarget: " .. RTRank.utils:format_amount(target) ..
+	"\nYou: " .. RTRank.utils:format_amount(player) .. "\nDiff: " .. RTRank.utils:format_amount(diff);
+	return msg
 end
 
 function RTRank.events:ENCOUNTER_START (...)
