@@ -24,7 +24,7 @@ function RTRank.config:updateRank(rank)
 		if not RTRank.lookupState.is_combat then
 			RTRank:setDefaultText()
 		else
-			print("RTRank: Hotswapped target rank to: " .. RTRank.config.match_ranking)
+			print("RTRank: Hotswapping target rank")
 		end
 		print("RTRank: Set target rank to: " .. RTRank.config.match_ranking)
 	else

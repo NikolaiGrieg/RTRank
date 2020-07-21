@@ -65,6 +65,9 @@ function RTRank.events:ENCOUNTER_START (...)
 	RTRank.lookupState.difficultyID = difficultyID
 	RTRank.lookupState.startTime = GetTime()
 	print("RTRank: Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
+	if difficultyID ~= 5 then
+		print("RTRank: Non-mythic difficulty detected, using mythic data as this is the only available.")
+	end
 end
 
 function RTRank:setDefaultText()

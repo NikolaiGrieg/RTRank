@@ -15,7 +15,7 @@ function RTRank:step() --todo refactor further
 		if encounter_id == -1 then -- we are not in encounter
 			if RTRank.config.dummy_enabled then
 				encounter_id = RTRank.config.dummy_encounter
-				encounter_diff = 5
+				--encounter_diff = 5
 			end
 		end
 
