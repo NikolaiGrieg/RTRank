@@ -1,7 +1,8 @@
 import math
 import pickle
+import time
 
-from py.static.PlayerClass import Priest
+from py.static.PlayerClass import Priest, Druid
 from py.static.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
@@ -62,9 +63,10 @@ def generate_data_for_spec(playerclass, playerspec):
     encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
     spec_name = playerclass.get_spec_name_from_idx(playerspec)
 
-    processed_data = get_processed_data()
+    processed_data = get_processed_data(playerclass)
 
-    if processed_data is None or spec_name not in get_processed_data()[0]:  # todo handle partial spec loads (missing encounters)
+    # todo handle partial spec loads (missing encounters)
+    if processed_data is None or spec_name not in processed_data[0]:
         spec_role = playerclass.get_role_for_spec(spec_name)
         for encounter_id in encounter_ids:
             df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
@@ -80,12 +82,12 @@ def generate_data_for_spec(playerclass, playerspec):
                             encounter_id=encounter_id, append=None)
 
 
-def get_processed_data():
+def get_processed_data(playerclass):
     """
     :return: processed_specs = list over (partially) processed specs, processed_encounters = dict[spec] = [encounterIDs]
     """
     try:
-        with open(ROOT_DIR + "\\data\\DatabasePriest.pkl", 'rb') as f:  # todo this needs to be in some constants file
+        with open(ROOT_DIR + f"\\data\\Database{playerclass.name}.pkl", 'rb') as f:  # todo this needs to be in some constants file
             master_frames = pickle.load(f)
     except FileNotFoundError:
         return None
@@ -99,9 +101,14 @@ def get_processed_data():
 
 
 if __name__ == '__main__':
-    playerclass = Priest()
+    start = time.time()
+    # playerclass = Priest()
+    playerclass = Druid()
     for specname, spec in playerclass.specs.items():
         print(f"Processing spec {specname}({spec})")
         generate_data_for_spec(playerclass, spec)
 
+    print()
+    print(f"Total time elapsed: {str(time.time() - start)}")
     # todo user configurable target rank + more classes
+    # todo multithread loading to speedup db generation

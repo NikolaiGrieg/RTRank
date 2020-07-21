@@ -29,7 +29,7 @@ function RTRank:handleSlashCommand(msg)
 		self:resetState()
 	elseif cmd == "dumpdb" then -- todo parse spec
 		print("PH dumpdb") -- todo print db in a nice format
-		end
+	end
 	self:updateStoredVars()
 end
 

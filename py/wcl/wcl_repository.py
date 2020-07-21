@@ -23,7 +23,7 @@ def get_rankings_raw(role, encounter_id, player_class, player_spec, key, num_pag
     base_url = "https://www.warcraftlogs.com/v1/rankings/encounter/"
     difficulty = 5  # mythic todo extract
 
-    full_url = base_url + f"{encounter_id}?metric={role.name.lower()}&difficulty={difficulty}&class={player_class}&" \
+    full_url = base_url + f"{encounter_id}?metric={role.name.lower()}&difficulty={difficulty}&class={player_class.name}&" \
                           f"spec={player_spec}&api_key={key}"
 
     response = requests.get(full_url)

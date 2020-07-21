@@ -68,6 +68,7 @@ function updateDisplay(db, encounter_id, target_series)
 
 		local new_text = ""
 		if RTRank.config.output_type == "cumulative" then
+			-- TODO someText:SetTextColor(red,green,blue,alpha)
 			new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
 					RTRank.utils:format_amount(state.target_amount) .. "\nRelative performance: " ..
 					RTRank.utils:format_amount(state.diff)

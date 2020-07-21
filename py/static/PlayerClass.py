@@ -36,6 +36,23 @@ class Priest(PlayerClass):
     }  # todo maybe generate lua role lookups (for recount query) based on this
 
 
+class Druid(PlayerClass):
+    name = "Druid"
+    wcl_id = 2
+    specs = {
+        "Balance": 1,
+        "Feral": 2,
+        "Guardian": 3,
+        "Restoration": 0  # Documentation says 4, but this appears to work (4 doesnt)
+    }
+    spec_roles = {
+        "Balance": Role.DPS,
+        "Feral": Role.DPS,
+        "Guardian": Role.DPS,
+        "Restoration": Role.HPS
+    }
+
+
 class Mage(PlayerClass):
     wcl_id = 4
     name = "Mage"
