@@ -68,7 +68,7 @@ function RTRank.events:ENCOUNTER_START (...)
 end
 
 function RTRank:setDefaultText()
-	self.frame.text:SetText(self.config:getDefaultText())
+	RTRank:updateText(self.config:getDefaultText())
 end
 
 

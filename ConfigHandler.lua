@@ -10,6 +10,7 @@ function RTRank.config:handleSlashCommand(msg)
 	elseif cmd  == "background" then
 
 	elseif cmd == "output" then
+
 	end
 end
 
@@ -18,13 +19,18 @@ function RTRank.config:getDefaultText()
 end
 
 function RTRank.config:updateRank(rank)
+	if rank > 0 then
+		RTRank.config.match_ranking = rank  -- can't validate, as lookup is inferred at encounter time
+		if not RTRank.lookupState.is_combat then
+			RTRank:setDefaultText()
+		else
+			print("RTRank: Hotswapped target rank to: " .. RTRank.config.match_ranking)
+		end
+		print("RTRank: Set target rank to: " .. RTRank.config.match_ranking)
+	else
+		print("Requested rank needs to be at least 1 (got " .. rank .. ")")
+	end
 
-    -- todo check avaiable indexes
-    RTRank.config.match_ranking = rank
-    if not RTRank.lookupState.is_combat then
-        RTRank:setDefaultText()
-    else
-        print("RTRank: Hotswapped target rank to: " .. RTRank.config.match_ranking)
-    end
-    print("RTRank: Set target rank to: " .. RTRank.config.match_ranking)
+
+
 end

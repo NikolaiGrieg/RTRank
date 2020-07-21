@@ -110,8 +110,11 @@ def generate_lua_body_for_encounter(player_class, spec, encounter_id, frame, nam
 
 def generate_lua_encounter_metadata(player_class, spec, encounter_id, frame):
     frame_len = len(frame[0])
-    line = "".join(["F = function() Database_", player_class, ".lookup[\"", spec, "\"][", str(encounter_id), "][\"",
-                    "length", "\"] = ", str(frame_len), " end F() \n"])
+    rank_count = len(frame)
+    line = "".join(["F = function() Database_", player_class, ".lookup[\"", spec, "\"][", str(encounter_id),
+                    "] = {[\"length\"] = ", str(frame_len),
+                    ", [\"rank_count\"] = ", str(rank_count), "}", " end F() \n"])
+
     return line
 
 

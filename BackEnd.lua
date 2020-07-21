@@ -19,6 +19,14 @@ function RTRank:step() --todo refactor further
 			end
 		end
 
+		-- Adjust to closest rank if input rank doesn't exist
+		local target_series_rank_count = db.lookup[spec][encounter_id].rank_count
+		if target_series_rank_count < RTRank.config.match_ranking then
+			print("RTRank: No data available for requested rank " ..
+					RTRank.config.match_ranking .. " using closest (" .. target_series_rank_count .. ")")
+			RTRank.config.match_ranking = target_series_rank_count
+		end
+
 		if encounter_id ~= -1 then  -- 5 = mythic, we only have this data --encounter_diff == 5
 			RTRank.encounterState.in_session = true
 			if db.lookup[spec] ~= nil then
@@ -48,7 +56,7 @@ function updateDisplay(db, encounter_id, target_series)
 	local spec = RTRank.utils:get_player_spec()
 	local role = RTRank.utils:get_role(class, spec)
 
-	local target_series_len = db.lookup[spec][encounter_id].length -- todo also get the playername for target rank as metadata
+	local target_series_len = db.lookup[spec][encounter_id].length
 
 	local cumulative_amt = get_current_amount(role)
 
