@@ -4,17 +4,24 @@ function RTRank:updateText(msg)
 	self.frame:SetWidth(width)
 end
 
+-- todo event handlers should maybe not be in front end file
 function RTRank.events:PLAYER_ENTERING_WORLD(...)
-	local f = RTRank.frame
+	RTRank:loadStoredConfig()
+	RTRank:renderFrame()
+end
+
+function RTRank:renderFrame()
+	local f = self.frame
 	f:SetFrameStrata("BACKGROUND")
 	f:SetWidth(140) -- Set these to whatever height/width is needed
 	f:SetHeight(64) -- for your Texture
 
-	if RTRank.config.background_enabled then
-		local t = f:CreateTexture(nil,"BACKGROUND")
-		t:SetColorTexture(0,0,0, 0.5)
-		t:SetAllPoints(f)
-		f.texture = t
+	local t = f:CreateTexture(nil,"BACKGROUND")
+	t:SetColorTexture(0,0,0, 0.5)
+	t:SetAllPoints(f)
+	f.texture = t
+	if not RTRank.config.background_enabled then
+		t:Hide()
 	end
 
 	f:SetPoint("CENTER",200,-100)
@@ -24,8 +31,23 @@ function RTRank.events:PLAYER_ENTERING_WORLD(...)
 	f.text:SetPoint("CENTER",0,0)
 	RTRank:setDefaultText()
 
+	f:SetMovable(true)
+	f:EnableMouse(true)
+	f:RegisterForDrag("LeftButton")
+	f:SetScript("OnDragStart", self.frame.StartMoving)
+	f:SetScript("OnDragStop", self.frame.StopMovingOrSizing)
 	f:Show()
 end
+
+function RTRank:updateBackground()
+	local on = self.config.background_enabled
+	if on then
+		RTRank.frame.texture:Show()
+	else
+		RTRank.frame.texture:Hide()
+	end
+end
+
 function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refactor these
 	RTRank.lookupState.is_combat = true
 	RTRank.lookupState.combatStartTime = GetTime()
@@ -71,17 +93,11 @@ function RTRank.events:ENCOUNTER_START (...)
 end
 
 function RTRank:setDefaultText()
-	RTRank:updateText(self.config:getDefaultText())
+	self:updateText(self:getDefaultText())
 end
 
 
 function RTRank:initEvents()
-	self.frame:SetMovable(true)
-	self.frame:EnableMouse(true)
-	self.frame:RegisterForDrag("LeftButton")
-	self.frame:SetScript("OnDragStart", self.frame.StartMoving)
-	self.frame:SetScript("OnDragStop", self.frame.StopMovingOrSizing)
-
 	local events = RTRank.events
 
 	self.frame:SetScript("OnEvent", function(self, event, ...)

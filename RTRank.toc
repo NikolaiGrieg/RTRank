@@ -7,8 +7,8 @@ data/DatabasePriest.lua
 
 GlobalInitializer.lua
 MeterRepository.lua
+ConfigHandler.lua
 FrontEnd.lua
 BackEnd.lua
 Utilities.lua
-ConfigHandler.lua
 Main.lua

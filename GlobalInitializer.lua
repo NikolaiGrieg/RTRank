@@ -34,12 +34,8 @@ RTRank.lookupState = {
 	["combatStartTime"] = -1
 }
 
---config
-if RTRankConfig ~= nil then
-	RTRank.config = RTRankConfig
-	--print("using stored RTRankConfig")
-else
-	RTRank.config = {
+--config defaults, overridden from saved variable RTRankConfig
+RTRank.config = {
 		["match_ranking"] = 1,
 		["dummy_encounter"] = 2329,
 		["dummy_enabled"] = true,
@@ -47,12 +43,10 @@ else
 		["output_type"] = "second",  -- second, cumulative
 	}
 
-	RTRankConfig = RTRank.config -- todo does this reference or copy?
-end
-
 
 -- slash commands
 SLASH_RTRANK1 = "/rtr";
+SLASH_RTRANK2 = "/rtrank";
 function SlashCmdList.RTRANK(msg)
-	RTRank.config:handleSlashCommand(msg)
+	RTRank:handleSlashCommand(msg)
 end
