@@ -59,7 +59,7 @@ def generate_data_for_spec(playerclass, playerspec):
     encounters = get_encounter_id_map()
     encounter_ids = encounters.values()
 
-    #encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
+    encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
     spec_name = playerclass.get_spec_name_from_idx(playerspec)
 
     processed_data = get_processed_data()
@@ -70,12 +70,13 @@ def generate_data_for_spec(playerclass, playerspec):
             df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
 
             df = df[:2]  # temp cap num ranks ###
+            names = df['name']
 
             df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
             timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
             timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
 
-            generate_lua_db(timeseries_as_matrix, ROOT_DIR + "\\data\\Database", playerclass.name, spec_name,
+            generate_lua_db(timeseries_as_matrix, names, ROOT_DIR + "\\data\\Database", playerclass.name, spec_name,
                             encounter_id=encounter_id, append=None)
 
 

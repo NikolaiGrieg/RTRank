@@ -47,3 +47,11 @@ function RTRank.utils:get_current_time_step()
 		return math.floor(nowTime - RTRank.lookupState.combatStartTime)
 	end
 end
+
+function RTRank.utils:get_name_from_rank(rank, encounter_id)
+	local db = RTRank.lookupState.db
+	local spec = self:get_player_spec() -- todo class?
+	local target_series = db.lookup[spec][encounter_id][rank]
+	local name = target_series["name"]
+	return name
+end

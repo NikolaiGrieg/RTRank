@@ -3,8 +3,9 @@
 ## Notes: My first AddOn
 data/DatabasePriest.lua
 
-Constants.lua
+GlobalInitializer.lua
 MeterRepository.lua
 FrontEnd.lua
 BackEnd.lua
 Utilities.lua
+Main.lua
