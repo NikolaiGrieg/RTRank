@@ -34,18 +34,18 @@ class PlayerClass(ABC):
         return lua_str
 
 
-class Priest(PlayerClass):
-    name = "Priest"
-    wcl_id = 7
+class DeathKnight(PlayerClass):
+    name = "Death Knight"
+    wcl_id = 1
     specs = {
-        "Discipline": 1,
-        "Holy": 2,
-        "Shadow": 3,
+        "Blood": 1,
+        "Frost": 2,
+        "Unholy": 3,
     }
     spec_roles = {
-        "Discipline": Role.HPS,
-        "Holy": Role.HPS,
-        "Shadow": Role.DPS,
+        "Blood": Role.DPS,
+        "Frost": Role.DPS,
+        "Unholy": Role.DPS,
     }
 
 
@@ -66,18 +66,33 @@ class Druid(PlayerClass):
     }
 
 
-class Shaman(PlayerClass):
-    name = "Shaman"
-    wcl_id = 9
+class Hunter(PlayerClass):
+    name = "Hunter"
+    wcl_id = 3
     specs = {
-        "Elemental": 1,
-        "Enhancement": 2,
-        "Restoration": 3
+        "Beast Mastery": 1,
+        "Marksmanship": 2,
+        "Survival": 3
     }
     spec_roles = {
-        "Elemental": Role.DPS,
-        "Enhancement": Role.DPS,
-        "Restoration": Role.HPS
+        "Beast Mastery": Role.DPS,
+        "Marksmanship": Role.DPS,
+        "Survival": Role.DPS
+    }
+
+
+class Mage(PlayerClass):
+    wcl_id = 4
+    name = "Mage"
+    specs = {
+        "Arcane": 1,
+        "Fire": 2,
+        "Frost": 3,
+    }
+    spec_roles = {
+        "Arcane": Role.DPS,
+        "Fire": Role.DPS,
+        "Frost": Role.DPS,
     }
 
 
@@ -111,18 +126,95 @@ class Paladin(PlayerClass):
     }
 
 
-class Mage(PlayerClass):
-    wcl_id = 4
-    name = "Mage"
+class Priest(PlayerClass):
+    name = "Priest"
+    wcl_id = 7
     specs = {
-        "Arcane": 1,
-        "Fire": 2,
-        "Frost": 3,
+        "Discipline": 1,
+        "Holy": 2,
+        "Shadow": 3,
     }
     spec_roles = {
-        "Arcane": Role.DPS,
-        "Fire": Role.DPS,
-        "Frost": Role.DPS,
+        "Discipline": Role.HPS,
+        "Holy": Role.HPS,
+        "Shadow": Role.DPS,
+    }
+
+
+class Rogue(PlayerClass):
+    wcl_id = 8
+    name = "Rogue"
+    specs = {
+        "Assassination": 1,
+        "Combat": 2,
+        "Subtlety": 3,
+        "Outlaw": 4,  # TODO check what actually applies here
+    }
+    spec_roles = {
+        "Assassination": Role.DPS,
+        "Combat": Role.DPS,
+        "Subtlety": Role.DPS,
+        "Outlaw": Role.DPS
+    }
+
+
+class Shaman(PlayerClass):
+    name = "Shaman"
+    wcl_id = 9
+    specs = {
+        "Elemental": 1,
+        "Enhancement": 2,
+        "Restoration": 3
+    }
+    spec_roles = {
+        "Elemental": Role.DPS,
+        "Enhancement": Role.DPS,
+        "Restoration": Role.HPS
+    }
+
+
+class Warlock(PlayerClass):
+    name = "Warlock"
+    wcl_id = 10
+    specs = {
+        "Affliction": 1,
+        "Demonology": 2,
+        "Destruction": 3
+    }
+    spec_roles = {
+        "Affliction": Role.DPS,
+        "Demonology": Role.DPS,
+        "Destruction": Role.DPS
+    }
+
+
+class Warrior(PlayerClass):
+    name = "Warrior"
+    wcl_id = 11
+    specs = {
+        "Arms": 1,
+        "Fury": 2,
+        "Protection": 3,
+        "Gladiator": 4  # ????
+    }
+    spec_roles = {
+        "Arms": Role.DPS,
+        "Fury": Role.DPS,
+        "Protection": Role.DPS,
+        "Gladiator": Role.DPS
+    }
+
+
+class DemonHunter(PlayerClass):
+    name = "Demon Hunter"
+    wcl_id = 10
+    specs = {
+        "Havoc": 1,
+        "Vengeance": 2
+    }
+    spec_roles = {
+        "Havoc": Role.DPS,
+        "Vengeance": Role.DPS
     }
 
 
