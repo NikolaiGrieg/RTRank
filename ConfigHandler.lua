@@ -30,9 +30,9 @@ function RTRank:handleSlashCommand(msg)
 	elseif cmd == "dummy" then
 		self.config.dummy_enabled = not self.config.dummy_enabled
 		if self.config.dummy_enabled then
-			print("Toggled dummy on")
+			print("Toggled dummy mode on")
 		else
-			print("Toggled dummy off")
+			print("Toggled dummy mode off")
 		end
 	elseif cmd == "dumpdb" then -- todo parse spec
 		print("PH dumpdb") -- todo print db in a nice format

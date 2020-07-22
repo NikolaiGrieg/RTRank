@@ -25,47 +25,42 @@ function RTRank:step() --todo refactor further
         local db = lookup_state.db
 		local spec = RTRank.utils:get_player_spec()
 
-		local target_series = nil
 		local encounter_id = lookup_state.active_encounter
-		local encounter_diff = lookup_state.difficultyID
+		--local encounter_diff = lookup_state.difficultyID
 
 		-- dummy for testing
 		if encounter_id == -1 then -- we are not in encounter
 			if RTRank.config.dummy_enabled then
 				encounter_id = RTRank.config.dummy_encounter
-				--encounter_diff = 5
 			end
 		end
 
-		-- Adjust to closest rank if input rank doesn't exist
-		local target_series_rank_count = db.lookup[spec][encounter_id].rank_count
 
-		if target_series_rank_count < RTRank.config.match_ranking then
-			print("RTRank: No data available for requested rank " ..
-					RTRank.config.match_ranking .. " using closest (" .. target_series_rank_count .. ")")
-			RTRank.config.match_ranking = target_series_rank_count
-		end
+		if db.lookup[spec] ~= nil then
+			local valid_encounter = db.lookup[spec][encounter_id] ~= nil
+			if encounter_id ~= -1 and valid_encounter then  -- 16 = mythic, we only have this data
+				RTRank.encounterState.in_session = true
+				-- Adjust to closest rank if input rank doesn't exist
+				local target_series_rank_count = db.lookup[spec][encounter_id].rank_count
 
-		local valid_encounter = db.lookup[spec][encounter_id] ~= nil
-		if encounter_id ~= -1 and valid_encounter then  -- 5 = mythic, we only have this data --encounter_diff == 5
-			RTRank.encounterState.in_session = true
-			if db.lookup[spec] ~= nil then
-				if db.lookup[spec][encounter_id] ~= nil then
-					target_series = db.lookup[spec][encounter_id][RTRank.config.match_ranking]
-				else
-					print("RTRank: Could not find data for encounter: " .. encounter_id)
+				if target_series_rank_count < RTRank.config.match_ranking then
+					print("RTRank: No data available for requested rank " ..
+							RTRank.config.match_ranking .. " using closest (" .. target_series_rank_count .. ")")
+					RTRank.config.match_ranking = target_series_rank_count
 				end
-			else
-				print("RTRank: Could not find data for spec: " .. spec)
-			end
 
-			if target_series ~= nil then
-				updateDisplay(db, encounter_id, target_series)
+				local target_series = db.lookup[spec][encounter_id][RTRank.config.match_ranking]
+
+				if target_series ~= nil then
+					updateDisplay(db, encounter_id, target_series)
+				else
+					end_combat_session(false)
+				end
 			else
 				end_combat_session(false)
 			end
 		else
-			end_combat_session(false)
+			print("RTRank: Could not find data for spec: " .. spec)
 		end
 	end
 end
@@ -100,8 +95,8 @@ function updateDisplay(db, encounter_id, target_series)
 
 		RTRank:updateText(new_text)
 
-		--local pct_diff =  100 - (state.player_aps / state.target_aps  * 100)--target / player * 100 -- todo normalize to -100/+100
-		--RTRank:setBarValue(pct_diff)
+		local pct_diff = RTRank.utils:convert_aps_to_bar_pct(state.player_aps, state.target_aps)
+		RTRank:setBarValue(pct_diff)
 
 		C_Timer.After(1, RTRank.step) --todo handle last partial second, these events are lost atm
 	else
@@ -131,8 +126,6 @@ function RTRank.encounterState:updateState(cumulative_player, cumulative_target)
 	self.player_aps = aps
 	self.target_aps = target_aps
 	self.aps_diff = aps_diff
-
-	--RTRank.encounterState = state
 end
 
 
@@ -142,12 +135,10 @@ function end_combat_session(override_text)  --different from end combat, this sh
 	local encounter = RTRank.lookupState.active_encounter
 	if encounter ~= -1 then
 		print("RTRank: Ending combat session for encounter " .. encounter)
-	else
-		print("TMP: RTRank: Ending combat session")
 	end
 
 	if not override_text then
-        RTRank:updateText(RTRank.config.default_text)
+        RTRank:updateText(RTRank:getDefaultText())
 	end
 
 end
