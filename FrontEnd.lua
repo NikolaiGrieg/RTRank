@@ -41,7 +41,8 @@ function RTRank:renderFrame()
 	f:RegisterForDrag("LeftButton")
 	f:SetScript("OnDragStart", self.frame.StartMoving)
 	f:SetScript("OnDragStop", dragStop)
-	f:Show()
+
+	self:updateTextFieldEnabled()
 end
 
 function dragStop()
@@ -57,6 +58,15 @@ function RTRank:updateBackground()
 		RTRank.frame.texture:Show()
 	else
 		RTRank.frame.texture:Hide()
+	end
+end
+
+function RTRank:updateTextFieldEnabled()
+	local on = self.config.text_enabled
+	if on then
+		RTRank.frame:Show()
+	else
+		RTRank.frame:Hide()
 	end
 end
 

@@ -60,6 +60,7 @@ RTRank.default_config = {
 		["match_ranking"] = 1,
 		["dummy_encounter"] = 2329,
 		["dummy_enabled"] = false,
+		["text_enabled"] = true,
 		["background_enabled"] = true,
 		["output_type"] = "second",  -- second, cumulative,
 		["xOfs"] = 880,

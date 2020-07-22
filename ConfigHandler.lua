@@ -34,6 +34,14 @@ function RTRank:handleSlashCommand(msg)
 		else
 			print("Toggled dummy mode off")
 		end
+	elseif cmd == "text" then
+		self.config.text_enabled = not self.config.text_enabled
+		if self.config.text_enabled then
+			print("Toggled text display on")
+		else
+			print("Toggled text display off")
+		end
+		RTRank:updateTextFieldEnabled()
 	elseif cmd == "dumpdb" then -- todo parse spec
 		print("PH dumpdb") -- todo print db in a nice format
 	end
