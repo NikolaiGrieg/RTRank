@@ -4,15 +4,18 @@ function RTRank:updateText(msg)
 	self.frame:SetWidth(width)
 end
 
--- todo event handlers should maybe not be in frontend file
+-- event handlers should maybe not be in frontend file
 function RTRank.events:PLAYER_ENTERING_WORLD(...)
-	RTRank:loadStoredConfig()
-	RTRank:loadDataBase()
-	RTRank:renderFrame()
+	local isInitialLogin, isReloadingUi = ...
+	if isInitialLogin or isReloadingUi then -- all frames should be created here
+		RTRank:loadStoredConfig()
+		RTRank:loadDataBase()
+		RTRank:renderFrame()
 
-	-- status bar
-	RTRank:initStatusBar()
-	RTRank:setBarValue(0)
+		-- status bar
+		RTRank:initStatusBar()
+		RTRank:setBarValue(0)
+	end
 end
 
 function RTRank:renderFrame()
