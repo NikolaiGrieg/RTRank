@@ -46,7 +46,8 @@ function RTRank:step() --todo refactor further
 			RTRank.config.match_ranking = target_series_rank_count
 		end
 
-		if encounter_id ~= -1 then  -- 5 = mythic, we only have this data --encounter_diff == 5
+		local valid_encounter = db.lookup[spec][encounter_id] ~= nil
+		if encounter_id ~= -1 and valid_encounter then  -- 5 = mythic, we only have this data --encounter_diff == 5
 			RTRank.encounterState.in_session = true
 			if db.lookup[spec] ~= nil then
 				if db.lookup[spec][encounter_id] ~= nil then
@@ -98,6 +99,9 @@ function updateDisplay(db, encounter_id, target_series)
 		end
 
 		RTRank:updateText(new_text)
+
+		--local pct_diff =  100 - (state.player_aps / state.target_aps  * 100)--target / player * 100 -- todo normalize to -100/+100
+		--RTRank:setBarValue(pct_diff)
 
 		C_Timer.After(1, RTRank.step) --todo handle last partial second, these events are lost atm
 	else

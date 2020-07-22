@@ -11,7 +11,12 @@ class PlayerClass(ABC):
 
     @property
     @abstractmethod
-    def spec_roles(self):  # todo test if this works
+    def spec_roles(self):
+        pass
+
+    @property
+    @abstractmethod
+    def name(self):
         pass
 
     def get_spec_name_from_idx(self, idx):
@@ -19,6 +24,14 @@ class PlayerClass(ABC):
 
     def get_role_for_spec(self, spec_name):
         return self.spec_roles[spec_name]
+
+    def generate_lua_rolemap_string(self):
+        lua_str = "[\"" + self.name + "\"] = { \n"
+        for spec, role in self.spec_roles.items():
+            full_role = "healer" if role == Role.HPS else "damage"
+            lua_str += "    [\"" + spec + "\"] = \"" + full_role + "\",\n"
+        lua_str += "},"
+        return lua_str
 
 
 class Priest(PlayerClass):
@@ -33,7 +46,7 @@ class Priest(PlayerClass):
         "Discipline": Role.HPS,
         "Holy": Role.HPS,
         "Shadow": Role.DPS,
-    }  # todo maybe generate lua role lookups (for recount query) based on this
+    }
 
 
 class Druid(PlayerClass):
@@ -111,3 +124,9 @@ class Mage(PlayerClass):
         "Fire": Role.DPS,
         "Frost": Role.DPS,
     }
+
+
+if __name__ == '__main__':
+    classes = [Priest(), Monk(), Shaman(), Paladin(), Druid(), Mage()]  # todo
+    for player_class in classes:
+        print(player_class.generate_lua_rolemap_string())
