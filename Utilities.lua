@@ -55,3 +55,20 @@ function RTRank.utils:get_name_from_rank(rank, encounter_id)
 	local name = target_series["name"]
 	return name
 end
+
+function RTRank.utils:convert_aps_to_bar_pct(player_aps, target_aps)
+	-- Converts to bar friendly format, some examples:
+	-- given player = 100k and target = 200k => player is 50% of target => return -50%
+	-- given player = 100k and target = 70k => player is 143% of target => return +43%
+
+	if target_aps == 0 then
+		return 100
+	end
+
+	local base_pct = player_aps / target_aps * 100
+	if base_pct > 100 then
+		return base_pct - 100
+	else
+		return - (100 - base_pct)
+	end
+end

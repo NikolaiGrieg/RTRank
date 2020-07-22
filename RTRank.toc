@@ -13,4 +13,6 @@ ConfigHandler.lua
 FrontEnd.lua
 BackEnd.lua
 Utilities.lua
+Statusbar.lua
 Main.lua
+

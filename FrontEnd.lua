@@ -9,6 +9,10 @@ function RTRank.events:PLAYER_ENTERING_WORLD(...)
 	RTRank:loadStoredConfig()
 	RTRank:loadDataBase()
 	RTRank:renderFrame()
+
+	-- status bar
+	RTRank:initStatusBar()
+	RTRank:setBarValue(0)
 end
 
 function RTRank:renderFrame()
@@ -123,6 +127,8 @@ function RTRank:initEvents()
 	 	self.frame:RegisterEvent(k); -- Register all events for which handlers have been defined
 	end
 end
+
+
 
 --TODOs:
 --Load data for all classes

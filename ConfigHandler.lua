@@ -54,6 +54,13 @@ function RTRank:setFramePosition(xOfs, yOfs)
 	self.updateStoredVars()
 end
 
+function RTRank:setBarPosition(xOfs, yOfs)
+	self.config.bar_xOfs = xOfs
+	self.config.bar_yOfs = yOfs
+
+	self.updateStoredVars()
+end
+
 function RTRank:updateStoredVars()
 	RTRankConfig = RTRank.config
 end

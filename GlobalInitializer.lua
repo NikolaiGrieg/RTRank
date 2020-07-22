@@ -63,7 +63,9 @@ RTRank.default_config = {
 		["background_enabled"] = true,
 		["output_type"] = "second",  -- second, cumulative,
 		["xOfs"] = 880,
-		["yOfs"] = -450
+		["yOfs"] = -450,
+		["bar_xOfs"] = 880,
+		["bar_yOfs"] = -550,
 	}
 RTRank.config = RTRank.default_config
 
