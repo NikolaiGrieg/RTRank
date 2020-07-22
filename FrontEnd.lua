@@ -64,10 +64,6 @@ function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refact
 end
 
 function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
-	RTRank.lookupState.is_combat = false
-	RTRank.lookupState.active_encounter = -1
-	RTRank.lookupState.difficultyID = -1
-	local t = RTRank.utils:get_current_time_step()
 	local state = RTRank.encounterState
 
 	if RTRank.encounterState.in_session then  -- execute final commands before ending session
@@ -81,6 +77,10 @@ function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
 
 		end_combat_session(true)
 	end
+
+	RTRank.lookupState.is_combat = false
+	RTRank.lookupState.active_encounter = -1
+	RTRank.lookupState.difficultyID = -1
 end
 
 function createFinalMessage(rank, player, target, diff)
@@ -104,7 +104,7 @@ function RTRank.events:ENCOUNTER_START (...)
 	RTRank.lookupState.startTime = GetTime()
 	print("RTRank: Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
 	if difficultyID ~= 5 then
-		print("RTRank: Non-mythic difficulty detected, using mythic data as this is the only available.")
+		print("RTRank: Non-mythic difficulty detected, using mythic data as this is the only available data.")
 	end
 end
 
