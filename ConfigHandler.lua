@@ -42,6 +42,10 @@ function RTRank:handleSlashCommand(msg)
 			print("Toggled text display off")
 		end
 		RTRank:updateTextFieldEnabled()
+	elseif cmd == "printconfig" then
+		for k, v in pairs( RTRank.config ) do  -- todo consider implementing custom rjust function
+			print( k .. ":", v)
+		end
 	elseif cmd == "dumpdb" then -- todo parse spec
 		print("PH dumpdb") -- todo print db in a nice format
 	end
