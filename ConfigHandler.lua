@@ -46,8 +46,14 @@ function RTRank:handleSlashCommand(msg)
 		for k, v in pairs( RTRank.config ) do  -- todo consider implementing custom rjust function
 			print( k .. ":", v)
 		end
-	elseif cmd == "dumpdb" then -- todo parse spec
-		print("PH dumpdb") -- todo print db in a nice format
+	elseif cmd == "dumpdb" then
+		local encounter_id = args
+			if encounter_id ~= nil then
+				RTRank.utils:printDB(tonumber(encounter_id))
+			else
+				print("Missing encounter ID, use: /rtr dumpdb [encounter_id]")
+			end
+	else -- look for multiple arguments
 	end
 	self:updateStoredVars()
 end

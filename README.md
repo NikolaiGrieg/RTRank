@@ -11,7 +11,7 @@ Class, spec, role and encounter will be automatically inferred (Tanks are regist
 Settings are stored across sessions.  
 The data is subject to the build time of the AddOn code, which should be approximately download time.
 
-In the current version, ranks 1-2 are available for all specs, and ranks 1-5 for: Shaman, Priest, Druid, Monk, Paladin.
+In the current version, ranks 1-2 are available for all specs.
 Only mythic raid data is available due to size constraints.
 
 ### Commands (rtr or rtrank):  
@@ -22,4 +22,4 @@ Only mythic raid data is available due to size constraints.
 
 * dummy -> toggle for "dummy use", this will in practice treat all combat entries as an encounter
 * reset -> resets to default settings
-* dumpdb(NYI)  -> prints the current database
+* dumpdb (encounterID)  -> prints the current database for the specified encounter

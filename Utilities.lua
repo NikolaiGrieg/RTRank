@@ -74,3 +74,38 @@ function RTRank.utils:convert_aps_to_bar_pct(player_aps, target_aps)
 		return - (100 - base_pct)
 	end
 end
+
+function RTRank.utils:printDB(encounter_id)
+	local db = RTRank.lookupState.db
+	local spec = self:get_player_spec()
+	if db.lookup[spec][encounter_id] ~= nil then
+		print("DB for " .. spec .. " - encounter " .. encounter_id .. ":")
+		print("Rank, Name, final_aps")
+		for rank, ser in pairs(db.lookup[spec][encounter_id]) do
+			if (type(ser) == "table") then -- skip metadata
+				local name = ser.name
+			local ser_len = db.lookup[spec][encounter_id].length
+			local aps = ser[ser_len] / ser_len
+			print(rank, name, self:format_amount(aps))
+			end
+		end
+	else
+		print("No data available for given encounterID(" .. encounter_id .."). Try any of: ")
+		for k, _ in pairs(db.lookup[spec]) do  --todo would be useful with bossnames here
+			print(k)
+		end
+	end
+end
+
+function RTRank.utils:split(inputstr, sep)
+	--- Generic string split. Useful for example to parse multiple args from slash commands.
+	-- Adapted from: https://stackoverflow.com/questions/1426954/split-string-in-lua
+	if sep == nil then
+			sep = "%s"
+	end
+	local t={}
+	for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+			table.insert(t, str)
+	end
+	return t
+end
