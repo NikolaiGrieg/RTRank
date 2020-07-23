@@ -207,7 +207,7 @@ class Warrior(PlayerClass):
 
 class DemonHunter(PlayerClass):
     name = "DemonHunter"
-    wcl_id = 10
+    wcl_id = 12
     specs = {
         "Havoc": 1,
         "Vengeance": 2
