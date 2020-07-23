@@ -15,7 +15,7 @@ def get_master_frame_exists(output_path):
     return exists and has_data
 
 
-def generate_lua_db(timeseries, names, player_class, spec, encounter_id, append=None, gen_override=False):
+def generate_lua_db(timeseries, names, player_class, spec, encounter_id, append=None, generate_lua=False):
     """
     Main function for generating lua to file for one encounter,
      can overwrite, append, or append if exists based on the append parameter.
@@ -36,7 +36,7 @@ def generate_lua_db(timeseries, names, player_class, spec, encounter_id, append=
     if not append:
         init_create_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names)
     else:
-        extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names, gen_override)
+        extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names, generate_lua)
 
 
 def extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names, generate_lua):
