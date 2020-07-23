@@ -16,7 +16,8 @@ from py.utils import generate_metadata, extrapolate_aps_linearly, get_encounter_
 from py.wcl.wcl_repository import query_wcl, get_rankings_raw, \
     get_fight_metadata_bulk
 from rootfile import ROOT_DIR
-
+from multiprocessing import Pool
+from itertools import repeat
 
 def get_top_x_rankings(role, encounter_id, player_class, player_spec):
     key = get_wcl_key()
@@ -24,7 +25,7 @@ def get_top_x_rankings(role, encounter_id, player_class, player_spec):
     rankings_raw = get_rankings_raw(role, encounter_id, player_class, player_spec, key, 1)
 
     df = process_rankings(rankings_raw)
-    print(df.head())
+    # print(df.head())
     return df
 
 
@@ -51,7 +52,7 @@ def get_events_for_all_rankings(df, role):
 
         df = parse_log(contents)
         total_amount, fight_len, amount_per_s = generate_metadata(df, start, end)
-        print(f"meta: {total_amount/1000=}k, {fight_len=}, {amount_per_s/1000=}k")  # python 3.8+
+        #print(f"meta: {total_amount/1000=}k, {fight_len=}, {amount_per_s/1000=}k")  # python 3.8+
 
         time_ser = transform_to_timeseries(df, start, end)
         # assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}" # TODO actually fix the problem
@@ -70,26 +71,54 @@ def generate_data_for_spec(playerclass, playerspec):
     processed_data = get_processed_data(playerclass)
     spec_role = playerclass.get_role_for_spec(spec_name)
 
+    valid_encounters = []
     if processed_data is None or spec_name not in processed_data[0]:  # initial load
-        for encounter_id in encounter_ids:
-            process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role)
+        valid_encounters = [x for x in encounter_ids]  # add all
+        # for encounter_id in encounter_ids:
+        #     process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role)
     else:
         for encounter_id in encounter_ids:
             if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
-                process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role)
+                valid_encounters.append(encounter_id)
+
+    process_encounters_parallell(valid_encounters, playerclass, playerspec, spec_name, spec_role)
 
 
-def process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role):
-    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
-    df = df[:2]  # temp cap num ranks ###
-
-    names = df['name']
-    df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
-    timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
-    timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+def process_entry(encounter_id, playerclass, playerspec, spec_name,
+                  spec_role):  # todo pass [encounter_ids] instead of single encounterID
+    names, timeseries_as_matrix = make_queries(encounter_id, playerclass, playerspec, spec_role)
 
     generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
                     encounter_id=encounter_id, append=None)
+
+
+def process_encounters_parallell(encounter_ids, playerclass, playerspec, spec_name, spec_role):
+    # experimental
+    if len(encounter_ids) > 0:
+
+        with Pool(10) as pool:
+            res = pool.starmap(
+                make_queries, zip(encounter_ids, repeat(playerclass), repeat(playerspec), repeat(spec_role)))
+
+        for names, timeseries_as_matrix in res:
+            for i, encounter_id in enumerate(encounter_ids):
+                generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
+                                encounter_id=encounter_id, append=None, gen_override=i != len(encounter_ids) - 1)
+
+
+def make_queries(encounter_id, playerclass, playerspec, spec_role):
+    print(f"Processing encounter {encounter_id}")
+    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
+    df = df[:2]  # temp cap num ranks ###
+    names = df['name']
+
+    # print(f"Processing metadata for encounter {encounter_id}")
+    df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
+
+    print(f"Processing events for encounter {encounter_id}")
+    timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
+    timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+    return names, timeseries_as_matrix
 
 
 def is_valid_for_processing(spec_name, encounter_id, processed_encounters):
@@ -124,11 +153,15 @@ def get_processed_data(playerclass):
 if __name__ == '__main__':
     start = time.time()
 
-    classes = [Shaman(), Priest(), Druid(), Monk(), Paladin(),
-               DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(), DemonHunter()]
+    classes = [
+        Shaman(), Priest(), Druid(), Monk(), Paladin(),
+        DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(),
+        DemonHunter()
+    ]
     for playerclass in classes:  # horribly slow
         for specname, spec in playerclass.specs.items():
             print(f"Processing spec {specname}({spec})")
+
             generate_data_for_spec(playerclass, spec)
 
     print()
