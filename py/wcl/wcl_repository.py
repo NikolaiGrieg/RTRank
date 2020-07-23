@@ -76,8 +76,8 @@ def get_fight_metadata_bulk(df):
     end_times = []
     source_ids = []
     for i, row in enumerate(df.iterrows()):
-        if i % 10 == 0:
-            print(f"processing fight metadata for rank {i}")
+        # if i % 10 == 0:
+        # print(f"processing fight metadata for rank {i}")
 
         fight_data = get_fight_metadata(row)
         fight_id = row[1]['fightID']

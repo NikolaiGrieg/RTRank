@@ -15,7 +15,7 @@ def get_master_frame_exists(output_path):
     return exists and has_data
 
 
-def generate_lua_db(timeseries, names, player_class, spec, encounter_id, append=None):
+def generate_lua_db(timeseries, names, player_class, spec, encounter_id, append=None, gen_override=False):
     """
     Main function for generating lua to file for one encounter,
      can overwrite, append, or append if exists based on the append parameter.
@@ -36,10 +36,10 @@ def generate_lua_db(timeseries, names, player_class, spec, encounter_id, append=
     if not append:
         init_create_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names)
     else:
-        extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names)
+        extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names, gen_override)
 
 
-def extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names):
+def extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class, spec, timeseries, names, generate_lua):
     # read prev pickled matrix
     with open(output_path_py, 'rb') as f:
         master_frames = pickle.load(f)
@@ -58,19 +58,20 @@ def extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class
             encounter_id: encounter_base
         }
 
-    # generate lua header from scratch
-    lua_header = generate_lua_db_metadata(player_class, recorded_specs, master_frames)
+    if generate_lua:
+        # generate lua header from scratch
+        lua_header = generate_lua_db_metadata(player_class, recorded_specs, master_frames)
 
-    # generate lua body as separate strings
-    new_lua_body = []
-    for spec_key in master_frames.keys():
-        new_lua_body += generate_lua_db_body(player_class, spec_key, master_frames)
+        # generate lua body as separate strings
+        new_lua_body = []
+        for spec_key in master_frames.keys():
+            new_lua_body += generate_lua_db_body(player_class, spec_key, master_frames)
 
-    lua_str = join_lua_strings([lua_header] + new_lua_body)
+        lua_str = join_lua_strings([lua_header] + new_lua_body)
 
-    # overwrite both files
-    with open(output_path_lua, "w+", encoding='utf-8') as f:  # doesn't seem to be able to create file if not existing
-        f.write(lua_str)
+        # overwrite both files
+        with open(output_path_lua, "w+", encoding='utf-8') as f:  # doesn't seem to be able to create file if not existing
+            f.write(lua_str)
     with open(output_path_py, 'wb') as f:
         pickle.dump(master_frames, f)
 
