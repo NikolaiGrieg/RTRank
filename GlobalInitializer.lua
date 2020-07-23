@@ -31,7 +31,36 @@ Constants = {
 			["Fire"] = "damage",
 			["Frost"] = "damage",
 		},
-	} --todo rest
+		["DeathKnight"] = {
+			["Blood"] = "damage",
+			["Frost"] = "damage",
+			["Unholy"] = "damage",
+		},
+		["Hunter"] = {
+			["Beast Mastery"] = "damage",
+			["Marksmanship"] = "damage",
+			["Survival"] = "damage",
+		},
+		["Rogue"] = {
+			["Assassination"] = "damage",
+			["Combat"] = "damage",
+			["Subtlety"] = "damage",
+		},
+		["Warlock"] = {
+			["Affliction"] = "damage",
+			["Demonology"] = "damage",
+			["Destruction"] = "damage",
+		},
+		["Warrior"] = {
+			["Arms"] = "damage",
+			["Fury"] = "damage",
+			["Protection"] = "damage",
+		},
+		["DemonHunter"] = {
+			["Havoc"] = "damage",
+			["Vengeance"] = "damage",
+		}
+	}
 }
 
 local frame, events = CreateFrame("FRAME", "RTRankMain"), {};

@@ -5,7 +5,16 @@
 ## SavedVariables: RTRankConfig
 data/DatabasePriest.lua
 data/DatabaseDruid.lua
+data/DatabasePaladin.lua
 data/DatabaseShaman.lua
+data/DatabaseMonk.lua
+data/DatabaseMage.lua
+data/DatabaseRogue.lua
+data/DatabaseWarlock.lua
+data/DatabaseWarrior.lua
+data/DatabaseDeathKnight.lua
+data/DatabaseDemonHunter.lua
+data/DatabaseHunter.lua
 
 GlobalInitializer.lua
 MeterRepository.lua

@@ -8,6 +8,13 @@ function RTRank:loadDataBase()
 		["Druid"] = Database_Druid,
 		["Monk"] = Database_Monk,
 		["Paladin"] = Database_Paladin,
+		["Mage"] = Database_Mage,
+		["DeathKnight"] = Database_DeathKnight,
+		["Hunter"] = Database_Hunter,
+		["Rogue"] = Database_Rogue,
+		["Warlock"] = Database_Warlock,
+		["Warrior"] = Database_Warrior,
+		["DemonHunter"] = Database_DemonHunter,
 	}
 	local db = meta_lookup[class]
 	if db ~= nil then

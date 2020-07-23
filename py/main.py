@@ -2,7 +2,8 @@ import math
 import pickle
 import time
 
-from py.static.PlayerClass import Priest, Druid, Shaman, Monk, Paladin
+from py.static.PlayerClass import Priest, Druid, Shaman, Monk, Paladin, DeathKnight, Warrior, Hunter, Mage, Rogue, \
+    Warlock, DemonHunter
 from py.static.Role import Role
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
@@ -50,7 +51,7 @@ def get_events_for_all_rankings(df, role):
         print(f"meta: {total_amount/1000=}k, {fight_len=}, {amount_per_s/1000=}k")  # python 3.8+
 
         time_ser = transform_to_timeseries(df, start, end)
-        #assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}" # TODO actually fix the problem
+        # assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}" # TODO actually fix the problem
         data.append(time_ser)
 
     return data
@@ -71,7 +72,7 @@ def generate_data_for_spec(playerclass, playerspec):
         for encounter_id in encounter_ids:
             df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
 
-            df = df[:5]  # temp cap num ranks ###
+            df = df[:2]  # temp cap num ranks ###
             names = df['name']
 
             df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
@@ -103,8 +104,8 @@ def get_processed_data(playerclass):
 
 if __name__ == '__main__':
     start = time.time()
-    # playerclass = Priest()
-    classes = [Shaman(), Druid(), Monk(), Paladin()]
+    #  [Shaman(), Priest(), Druid(), Monk(), Paladin()]
+    classes = [DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(), DemonHunter()]
     for playerclass in classes:  # horribly slow
         for specname, spec in playerclass.specs.items():
             print(f"Processing spec {specname}({spec})")

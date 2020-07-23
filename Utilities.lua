@@ -2,7 +2,8 @@ RTRank.utils = {}
 
 function RTRank.utils:get_player_class( ... )
 	local playerClass, _ = UnitClass("player");
-	return playerClass
+	local playerClassNoSpace = playerClass:gsub("%s+", "")
+	return playerClassNoSpace
 end
 
 function RTRank.utils:get_player_spec()

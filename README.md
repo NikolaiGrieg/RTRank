@@ -11,7 +11,7 @@ Class, spec, role and encounter will be automatically inferred (Tanks are regist
 Settings are stored across sessions.  
 The data is subject to the build time of the AddOn code, which should be approximately download time.
 
-In the current version, only the following classes are supported, for ranks 1-5: Shaman, Priest, Druid, Monk, Paladin.
+In the current version, ranks 1-2 are available for all specs, and ranks 1-5 for: Shaman, Priest, Druid, Monk, Paladin.
 Only mythic raid data is available due to size constraints.
 
 ### Commands (rtr or rtrank):  

@@ -35,7 +35,7 @@ class PlayerClass(ABC):
 
 
 class DeathKnight(PlayerClass):
-    name = "Death Knight"
+    name = "DeathKnight"
     wcl_id = 1
     specs = {
         "Blood": 1,
@@ -148,13 +148,13 @@ class Rogue(PlayerClass):
         "Assassination": 1,
         "Combat": 2,
         "Subtlety": 3,
-        "Outlaw": 4,  # TODO check what actually applies here
+        # "Outlaw": 4,  # appears to not have any entries
     }
     spec_roles = {
         "Assassination": Role.DPS,
         "Combat": Role.DPS,
         "Subtlety": Role.DPS,
-        "Outlaw": Role.DPS
+        # "Outlaw": Role.DPS
     }
 
 
@@ -195,18 +195,18 @@ class Warrior(PlayerClass):
         "Arms": 1,
         "Fury": 2,
         "Protection": 3,
-        "Gladiator": 4  # ????
+        # "Gladiator": 4  # ????
     }
     spec_roles = {
         "Arms": Role.DPS,
         "Fury": Role.DPS,
         "Protection": Role.DPS,
-        "Gladiator": Role.DPS
+        # "Gladiator": Role.DPS
     }
 
 
 class DemonHunter(PlayerClass):
-    name = "Demon Hunter"
+    name = "DemonHunter"
     wcl_id = 10
     specs = {
         "Havoc": 1,
@@ -219,6 +219,7 @@ class DemonHunter(PlayerClass):
 
 
 if __name__ == '__main__':
-    classes = [Priest(), Monk(), Shaman(), Paladin(), Druid(), Mage()]  # todo
+    classes = [Priest(), Monk(), Shaman(), Paladin(), Druid(), Mage(), DeathKnight(),
+               Hunter(), Rogue(), Warlock(), Warrior(), DemonHunter()]
     for player_class in classes:
         print(player_class.generate_lua_rolemap_string())
