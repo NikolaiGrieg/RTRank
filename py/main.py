@@ -1,7 +1,10 @@
+import datetime
 import math
 import pickle
 import time
+from datetime import timedelta
 
+from py.globals import base_path_to_masterframes
 from py.static.PlayerClass import Priest, Druid, Shaman, Monk, Paladin, DeathKnight, Warrior, Hunter, Mage, Rogue, \
     Warlock, DemonHunter
 from py.static.Role import Role
@@ -18,7 +21,7 @@ from rootfile import ROOT_DIR
 def get_top_x_rankings(role, encounter_id, player_class, player_spec):
     key = get_wcl_key()
 
-    rankings_raw = get_rankings_raw(role, encounter_id, player_class, player_spec, key, 2)
+    rankings_raw = get_rankings_raw(role, encounter_id, player_class, player_spec, key, 1)
 
     df = process_rankings(rankings_raw)
     print(df.head())
@@ -65,31 +68,43 @@ def generate_data_for_spec(playerclass, playerspec):
     spec_name = playerclass.get_spec_name_from_idx(playerspec)
 
     processed_data = get_processed_data(playerclass)
+    spec_role = playerclass.get_role_for_spec(spec_name)
 
-    # todo handle partial spec loads (missing encounters)
-    if processed_data is None or spec_name not in processed_data[0]:
-        spec_role = playerclass.get_role_for_spec(spec_name)
+    if processed_data is None or spec_name not in processed_data[0]:  # initial load
         for encounter_id in encounter_ids:
-            df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
+            process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role)
+    else:
+        for encounter_id in encounter_ids:
+            if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
+                process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role)
 
-            df = df[:2]  # temp cap num ranks ###
-            names = df['name']
 
-            df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
-            timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
-            timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+def process_entry(encounter_id, playerclass, playerspec, spec_name, spec_role):
+    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
+    df = df[:2]  # temp cap num ranks ###
 
-            generate_lua_db(timeseries_as_matrix, names, ROOT_DIR + "\\data\\Database", playerclass.name, spec_name,
-                            encounter_id=encounter_id, append=None)
+    names = df['name']
+    df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
+    timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
+    timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+
+    generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
+                    encounter_id=encounter_id, append=None)
+
+
+def is_valid_for_processing(spec_name, encounter_id, processed_encounters):
+    if encounter_id not in processed_encounters[spec_name]:  # this already has removed stale entries at this point
+        return True
 
 
 def get_processed_data(playerclass):
     """
     :return: processed_specs = list over (partially) processed specs, processed_encounters = dict[spec] = [encounterIDs]
     """
+    max_valid_time = timedelta(days=1)
+
     try:
-        with open(ROOT_DIR + f"\\data\\Database{playerclass.name}.pkl",
-                  'rb') as f:  # todo this needs to be in some constants file
+        with open(base_path_to_masterframes + f"{playerclass.name}.pkl", 'rb') as f:
             master_frames = pickle.load(f)
     except FileNotFoundError:
         return None
@@ -98,14 +113,19 @@ def get_processed_data(playerclass):
     for spec in processed_specs:
         processed_encounters[spec] = []
         for encounter in master_frames[spec].keys():
-            processed_encounters[spec].append(encounter)
-    return processed_specs, processed_encounters  # todo need mechanism to handle freshness constraint here also
+            if "processed_date" in master_frames[spec][encounter].keys():
+                processed_date = datetime.datetime.strptime(master_frames[spec][encounter]["processed_date"],
+                                                            "%Y-%m-%d %H:%M:%S")
+                if datetime.datetime.now() < processed_date + max_valid_time:
+                    processed_encounters[spec].append(encounter)  # we have data for encounter, and it's fresh
+    return processed_specs, processed_encounters
 
 
 if __name__ == '__main__':
     start = time.time()
-    #  [Shaman(), Priest(), Druid(), Monk(), Paladin()]
-    classes = [DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(), DemonHunter()]
+
+    classes = [Shaman(), Priest(), Druid(), Monk(), Paladin(),
+               DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(), DemonHunter()]
     for playerclass in classes:  # horribly slow
         for specname, spec in playerclass.specs.items():
             print(f"Processing spec {specname}({spec})")
@@ -113,5 +133,5 @@ if __name__ == '__main__':
 
     print()
     print(f"Total time elapsed: {str(time.time() - start)}")
-    # todo user configurable target rank + more classes
+
     # todo multithread loading to speedup db generation

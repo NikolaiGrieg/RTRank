@@ -43,8 +43,8 @@ Constants = {
 		},
 		["Rogue"] = {
 			["Assassination"] = "damage",
-			["Combat"] = "damage",
 			["Subtlety"] = "damage",
+			["Outlaw"] = "damage",
 		},
 		["Warlock"] = {
 			["Affliction"] = "damage",

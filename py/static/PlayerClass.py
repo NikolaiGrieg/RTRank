@@ -146,15 +146,15 @@ class Rogue(PlayerClass):
     name = "Rogue"
     specs = {
         "Assassination": 1,
-        "Combat": 2,
+        # "Combat": 2,
         "Subtlety": 3,
-        # "Outlaw": 4,  # appears to not have any entries
+        "Outlaw": 4,
     }
     spec_roles = {
         "Assassination": Role.DPS,
-        "Combat": Role.DPS,
+        # "Combat": Role.DPS,
         "Subtlety": Role.DPS,
-        # "Outlaw": Role.DPS
+        "Outlaw": Role.DPS
     }
 
 
