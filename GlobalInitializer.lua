@@ -61,7 +61,7 @@ Constants = {
 			["Vengeance"] = "damage",
 		}
 	}
-}
+} -- todo this object should be in the RTRank object
 
 local frame, events = CreateFrame("FRAME", "RTRankMain"), {};
 RTRank = {}
@@ -98,6 +98,9 @@ RTRank.default_config = {
 		["bar_yOfs"] = -550,
 	}
 RTRank.config = RTRank.default_config
+
+--in order: normal, hc, mythic, lfr
+RTRank.raid_difficulties = {[14] = true, [15]= true, [16]= true, [17]= true}
 
 
 -- slash commands

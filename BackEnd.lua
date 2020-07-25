@@ -140,7 +140,7 @@ function end_combat_session(override_text)  --different from end combat, this sh
 	RTRank.encounterState.in_session = false
 
 	local encounter = RTRank.lookupState.active_encounter
-	if encounter ~= -1 then
+	if encounter ~= -1 and RTRank.raid_difficulties[RTRank.lookupState.difficultyID] ~= nil then
 		print("RTRank: Ending combat session for encounter " .. encounter)
 	end
 

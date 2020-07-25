@@ -119,9 +119,11 @@ function RTRank.events:ENCOUNTER_START (...)
 	RTRank.lookupState.active_encounter = encounterID
 	RTRank.lookupState.difficultyID = difficultyID
 	RTRank.lookupState.startTime = GetTime()
-	print("RTRank: Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID)
-	if difficultyID ~= 16 then
-		print("RTRank: Non-mythic difficulty detected, using mythic data as this is the only available data.")
+	if RTRank.raid_difficulties[difficultyID] ~= nil then -- nil if difficultyID not a raid ID
+		print("RTRank: Initialized encounter " .. encounterID .. ", with difficulty: " .. difficultyID) -- todo extract
+		if difficultyID ~= 16 then
+			print("RTRank: Non-mythic difficulty detected, using mythic data as this is the only available data.")
+		end
 	end
 end
 
@@ -140,7 +142,6 @@ function RTRank:initEvents()
 	 	self.frame:RegisterEvent(k); -- Register all events for which handlers have been defined
 	end
 end
-
 
 
 --TODOs:
