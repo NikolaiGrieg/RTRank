@@ -36,4 +36,4 @@ def include_filter(filename):
 
 
 if __name__ == "__main__":
-    zipFilesInDir(ROOT_DIR, ROOT_DIR + "\\build\\RTRank_Alpha3.zip", include_filter)
+    zipFilesInDir(ROOT_DIR, ROOT_DIR + "\\build\\RTRank_Alpha5.zip", include_filter)

@@ -18,7 +18,7 @@ from py.wcl.wcl_repository import query_wcl, get_rankings_raw, \
 from rootfile import ROOT_DIR
 from multiprocessing import Pool
 from itertools import repeat
-
+import itertools
 
 def get_top_x_rankings(role, encounter_id, player_class, player_spec):
     key = get_wcl_key()
@@ -83,18 +83,9 @@ def generate_data_for_spec(playerclass, playerspec):
     process_encounters_parallell(valid_encounters, playerclass, playerspec, spec_name, spec_role)
 
 
-# Deprecated in favour of parallell below
-# def process_entry(encounter_id, playerclass, playerspec, spec_name,
-#                   spec_role):
-#     names, timeseries_as_matrix = make_queries(encounter_id, playerclass, playerspec, spec_role)
-#
-#     generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
-#                     encounter_id=encounter_id, append=None)
-
-
 def process_encounters_parallell(encounter_ids, playerclass, playerspec, spec_name, spec_role):
     if len(encounter_ids) > 0:
-        with Pool(10) as pool:  # async processing of implicit job matrix
+        with Pool(12) as pool:  # async processing of implicit job matrix
             res = pool.starmap(
                 make_queries, zip(encounter_ids, repeat(playerclass), repeat(playerspec), repeat(spec_role)))
 
@@ -147,6 +138,57 @@ def get_processed_data(playerclass):
     return processed_specs, processed_encounters
 
 
+def generate_data_for_class(playerclass):
+    # get specs
+    specs = playerclass.specs.keys()
+
+    # get encounters
+    encounters = get_encounter_id_map()
+    encounter_ids = encounters.values()
+
+    # process valid encounters from encounters
+    all_valid_encounters = {}
+    for spec_name in specs:
+        processed_data = get_processed_data(playerclass)
+        valid_encounters = []
+        if processed_data is None or spec_name not in processed_data[0]:  # initial load
+            valid_encounters = [x for x in encounter_ids]  # add all
+        else:
+            for encounter_id in encounter_ids:
+                if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
+                    valid_encounters.append(encounter_id)
+        all_valid_encounters[spec_name] = valid_encounters
+
+    # create job matrix w/ repeating class + role
+    if len(list(all_valid_encounters.values())[-1]) > 0:  # compare to last one, todo check if this is valid
+        all_enc = []
+        all_specs = []
+        for spec, enc in all_valid_encounters.items():
+            all_enc += enc
+            if len(enc) > 0:
+                all_specs.append([spec for _ in enc])
+        spec_list = []
+        for l in all_specs:
+            spec_list += l
+
+        roles = []
+        for spec_name in set(spec_list):
+            spec_role = playerclass.get_role_for_spec(spec_name)
+            repeats = spec_list.count(spec_name)
+            [roles.append(spec_role) for _ in range(repeats)]
+
+        job_matrix = zip(all_enc, repeat(playerclass), spec_list, roles)
+
+        with Pool(len(spec_list)) as pool:  # async processing of explicit job matrix
+            res = pool.starmap(make_queries, job_matrix)
+
+        for i, encounter_id in enumerate(encounter_ids):
+            names, timeseries_as_matrix = res[i]
+            spec_name = spec_list[i]
+            generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
+                            encounter_id=encounter_id, append=None, generate_lua=i == len(encounter_ids) - 1) # todo refactor
+
+
 if __name__ == '__main__':
     start = time.time()
 
@@ -156,9 +198,11 @@ if __name__ == '__main__':
         DemonHunter()
     ]
     for playerclass in classes:  # horribly slow
-        for specname, spec in playerclass.specs.items():
-            print(f"Processing spec {specname}({spec})")
-            generate_data_for_spec(playerclass, spec)
+        # for specname, spec in playerclass.specs.items():
+        # print(f"Processing spec {specname}({spec})")
+        # generate_data_for_spec(playerclass, spec)
+        print(f"Processing class {playerclass.name}")
+        generate_data_for_class(playerclass)
 
     print()
     print(f"Total time elapsed: {str(time.time() - start)}")
