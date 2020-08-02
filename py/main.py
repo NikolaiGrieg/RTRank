@@ -1,24 +1,24 @@
 import datetime
-import math
 import pickle
 import time
 from datetime import timedelta
+from itertools import repeat
+from multiprocessing import Pool
 
-from py.globals import base_path_to_masterframes
-from py.static.PlayerClass import Priest, Druid, Shaman, Monk, Paladin, DeathKnight, Warrior, Hunter, Mage, Rogue, \
-    Warlock, DemonHunter
-from py.static.Role import Role
+from setuptools._vendor.ordered_set import OrderedSet
+
 from py.etl.eventlog_to_timeseries import parse_log, transform_to_timeseries
 from py.etl.rankings_to_encounters import process_rankings
 from py.etl.timeseries_to_lua import generate_lua_db
+from py.globals import base_path_to_masterframes
 from py.secret_handler import get_wcl_key
-from py.utils import generate_metadata, extrapolate_aps_linearly, get_encounter_id_map
+from py.static.PlayerClass import Priest, Druid, Shaman, Monk, Paladin, DeathKnight, Warrior, Hunter, Mage, Rogue, \
+    Warlock, DemonHunter
+from py.static.Role import Role
+from py.utils import extrapolate_aps_linearly, get_encounter_id_map
 from py.wcl.wcl_repository import query_wcl, get_rankings_raw, \
     get_fight_metadata_bulk
-from rootfile import ROOT_DIR
-from multiprocessing import Pool
-from itertools import repeat
-import itertools
+
 
 def get_top_x_rankings(role, encounter_id, player_class, player_spec):
     key = get_wcl_key()
@@ -52,9 +52,6 @@ def get_events_for_all_rankings(df, role):
         contents = query_wcl(report_id, source_id, start, end, metric_type=metric_type)
 
         df = parse_log(contents)
-        # total_amount, fight_len, amount_per_s = generate_metadata(df, start, end)
-        # print(f"meta: {total_amount/1000=}k, {fight_len=}, {amount_per_s/1000=}k")  # python 3.8+
-
         time_ser = transform_to_timeseries(df, start, end)
         # assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}" # TODO actually fix the problem
         data.append(time_ser)
@@ -62,41 +59,10 @@ def get_events_for_all_rankings(df, role):
     return data
 
 
-# def generate_data_for_spec(playerclass, playerspec):
-#     encounters = get_encounter_id_map()
-#     encounter_ids = encounters.values()
-#
-#     # encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
-#     spec_name = playerclass.get_spec_name_from_idx(playerspec)
-#
-#     processed_data = get_processed_data(playerclass)
-#     spec_role = playerclass.get_role_for_spec(spec_name)
-#
-#     valid_encounters = []
-#     if processed_data is None or spec_name not in processed_data[0]:  # initial load
-#         valid_encounters = [x for x in encounter_ids]  # add all
-#     else:
-#         for encounter_id in encounter_ids:
-#             if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
-#                 valid_encounters.append(encounter_id)
-#
-#     process_encounters_parallell(valid_encounters, playerclass, playerspec, spec_name, spec_role)
-#
-#
-# def process_encounters_parallell(encounter_ids, playerclass, playerspec, spec_name, spec_role):
-#     if len(encounter_ids) > 0:
-#         with Pool(12) as pool:  # async processing of implicit job matrix
-#             res = pool.starmap(
-#                 make_queries, zip(encounter_ids, repeat(playerclass), repeat(playerspec), repeat(spec_role)))
-#
-#         for i, encounter_id in enumerate(encounter_ids):
-#             names, timeseries_as_matrix = res[i]
-#             generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
-#                             encounter_id=encounter_id, append=None, generate_lua=i == len(encounter_ids) - 1)
-
-
 def make_queries(encounter_id, playerclass, playerspec, spec_role):
-    print(f"Processing encounter {encounter_id}")
+    print(f"Processing encounter {encounter_id}-{playerspec}")
+    if playerspec == "Enhancement" and encounter_id == 2329:
+        print()
     df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
     df = df[:2]  # temp cap num ranks ###
     names = df['name']
@@ -139,12 +105,54 @@ def get_processed_data(playerclass):
 
 
 def generate_data_for_class(playerclass):
-    # get specs and encounters
-    specs = playerclass.specs.keys()
+    # get encounters
     encounters = get_encounter_id_map()
     encounter_ids = encounters.values()
 
     # process valid encounters from encounters
+    all_valid_encounters = get_valid_encounters(encounter_ids, playerclass)
+
+    # proceed if last spec to be processed has any encounters to be processed
+    if len(list(all_valid_encounters.values())[-1]) > 0:  # assumes ordered dict
+        # create job matrix
+        all_enc, job_matrix, spec_list = create_job_matrix(all_valid_encounters, playerclass)
+
+        with Pool(5) as pool:  # async processing of each row in the job matrix # len(spec_list)
+            res = pool.starmap(make_queries, job_matrix)
+
+        if len(res) == 0:
+            raise Exception("Starmap failure")
+        for i, encounter_id in enumerate(all_enc):
+            names, timeseries_as_matrix = res[i]
+            spec_name = spec_list[i]
+            generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
+                            encounter_id=encounter_id, append=None, generate_lua=i == len(all_enc) - 1)
+
+
+def create_job_matrix(all_valid_encounters, playerclass):
+    all_enc = []
+    all_specs = []
+
+    for spec, enc in all_valid_encounters.items():
+        all_enc += enc
+        if len(enc) > 0:
+            all_specs.append([spec for _ in enc])
+    spec_list = [item for sublist in all_specs for item in sublist]  # flatten
+
+    roles = []
+    for spec_name in OrderedSet(spec_list):
+        spec_role = playerclass.get_role_for_spec(spec_name)
+        repeats = spec_list.count(spec_name)
+        for _ in range(repeats):
+            roles.append(spec_role)
+
+    job_matrix = zip(all_enc, repeat(playerclass), spec_list, roles)
+    return all_enc, job_matrix, spec_list
+
+
+def get_valid_encounters(encounter_ids, playerclass):
+    specs = playerclass.specs.keys()
+
     all_valid_encounters = {}
     for spec_name in specs:
         processed_data = get_processed_data(playerclass)
@@ -156,35 +164,7 @@ def generate_data_for_class(playerclass):
                 if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
                     valid_encounters.append(encounter_id)
         all_valid_encounters[spec_name] = valid_encounters
-
-    # create job matrix w/ repeating class + role
-    if len(list(all_valid_encounters.values())[-1]) > 0:  # assumes ordered dict
-        all_enc = []
-        all_specs = []
-        for spec, enc in all_valid_encounters.items():
-            all_enc += enc
-            if len(enc) > 0:
-                all_specs.append([spec for _ in enc])
-        spec_list = []
-        for l in all_specs:
-            spec_list += l
-
-        roles = []
-        for spec_name in set(spec_list):
-            spec_role = playerclass.get_role_for_spec(spec_name)
-            repeats = spec_list.count(spec_name)
-            [roles.append(spec_role) for _ in range(repeats)]
-
-        job_matrix = zip(all_enc, repeat(playerclass), spec_list, roles)
-
-        with Pool(len(spec_list)) as pool:  # async processing of explicit job matrix
-            res = pool.starmap(make_queries, job_matrix)
-
-        for i, encounter_id in enumerate(all_enc):
-            names, timeseries_as_matrix = res[i]
-            spec_name = spec_list[i]
-            generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
-                            encounter_id=encounter_id, append=None, generate_lua=i == len(all_enc) - 1) # todo refactor
+    return all_valid_encounters
 
 
 if __name__ == '__main__':
@@ -192,8 +172,7 @@ if __name__ == '__main__':
 
     classes = [
         Shaman(), Priest(), Druid(), Monk(), Paladin(),
-        DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(),
-        DemonHunter()
+        DeathKnight(), Hunter(), Mage(), Rogue(), Warlock(), Warrior(), DemonHunter()
     ]
     for playerclass in classes:  # horribly slow
         print(f"Processing class {playerclass.name}")
