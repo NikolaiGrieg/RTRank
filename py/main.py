@@ -62,37 +62,37 @@ def get_events_for_all_rankings(df, role):
     return data
 
 
-def generate_data_for_spec(playerclass, playerspec):
-    encounters = get_encounter_id_map()
-    encounter_ids = encounters.values()
-
-    # encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
-    spec_name = playerclass.get_spec_name_from_idx(playerspec)
-
-    processed_data = get_processed_data(playerclass)
-    spec_role = playerclass.get_role_for_spec(spec_name)
-
-    valid_encounters = []
-    if processed_data is None or spec_name not in processed_data[0]:  # initial load
-        valid_encounters = [x for x in encounter_ids]  # add all
-    else:
-        for encounter_id in encounter_ids:
-            if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
-                valid_encounters.append(encounter_id)
-
-    process_encounters_parallell(valid_encounters, playerclass, playerspec, spec_name, spec_role)
-
-
-def process_encounters_parallell(encounter_ids, playerclass, playerspec, spec_name, spec_role):
-    if len(encounter_ids) > 0:
-        with Pool(12) as pool:  # async processing of implicit job matrix
-            res = pool.starmap(
-                make_queries, zip(encounter_ids, repeat(playerclass), repeat(playerspec), repeat(spec_role)))
-
-        for i, encounter_id in enumerate(encounter_ids):
-            names, timeseries_as_matrix = res[i]
-            generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
-                            encounter_id=encounter_id, append=None, generate_lua=i == len(encounter_ids) - 1)
+# def generate_data_for_spec(playerclass, playerspec):
+#     encounters = get_encounter_id_map()
+#     encounter_ids = encounters.values()
+#
+#     # encounter_ids = list(encounter_ids)[:3]  # temp cap encounters ###
+#     spec_name = playerclass.get_spec_name_from_idx(playerspec)
+#
+#     processed_data = get_processed_data(playerclass)
+#     spec_role = playerclass.get_role_for_spec(spec_name)
+#
+#     valid_encounters = []
+#     if processed_data is None or spec_name not in processed_data[0]:  # initial load
+#         valid_encounters = [x for x in encounter_ids]  # add all
+#     else:
+#         for encounter_id in encounter_ids:
+#             if is_valid_for_processing(spec_name, encounter_id, processed_data[1]):
+#                 valid_encounters.append(encounter_id)
+#
+#     process_encounters_parallell(valid_encounters, playerclass, playerspec, spec_name, spec_role)
+#
+#
+# def process_encounters_parallell(encounter_ids, playerclass, playerspec, spec_name, spec_role):
+#     if len(encounter_ids) > 0:
+#         with Pool(12) as pool:  # async processing of implicit job matrix
+#             res = pool.starmap(
+#                 make_queries, zip(encounter_ids, repeat(playerclass), repeat(playerspec), repeat(spec_role)))
+#
+#         for i, encounter_id in enumerate(encounter_ids):
+#             names, timeseries_as_matrix = res[i]
+#             generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
+#                             encounter_id=encounter_id, append=None, generate_lua=i == len(encounter_ids) - 1)
 
 
 def make_queries(encounter_id, playerclass, playerspec, spec_role):
@@ -139,10 +139,8 @@ def get_processed_data(playerclass):
 
 
 def generate_data_for_class(playerclass):
-    # get specs
+    # get specs and encounters
     specs = playerclass.specs.keys()
-
-    # get encounters
     encounters = get_encounter_id_map()
     encounter_ids = encounters.values()
 
@@ -160,7 +158,7 @@ def generate_data_for_class(playerclass):
         all_valid_encounters[spec_name] = valid_encounters
 
     # create job matrix w/ repeating class + role
-    if len(list(all_valid_encounters.values())[-1]) > 0:  # compare to last one, todo check if this is valid
+    if len(list(all_valid_encounters.values())[-1]) > 0:  # assumes ordered dict
         all_enc = []
         all_specs = []
         for spec, enc in all_valid_encounters.items():
@@ -182,11 +180,11 @@ def generate_data_for_class(playerclass):
         with Pool(len(spec_list)) as pool:  # async processing of explicit job matrix
             res = pool.starmap(make_queries, job_matrix)
 
-        for i, encounter_id in enumerate(encounter_ids):
+        for i, encounter_id in enumerate(all_enc):
             names, timeseries_as_matrix = res[i]
             spec_name = spec_list[i]
             generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
-                            encounter_id=encounter_id, append=None, generate_lua=i == len(encounter_ids) - 1) # todo refactor
+                            encounter_id=encounter_id, append=None, generate_lua=i == len(all_enc) - 1) # todo refactor
 
 
 if __name__ == '__main__':
@@ -198,13 +196,8 @@ if __name__ == '__main__':
         DemonHunter()
     ]
     for playerclass in classes:  # horribly slow
-        # for specname, spec in playerclass.specs.items():
-        # print(f"Processing spec {specname}({spec})")
-        # generate_data_for_spec(playerclass, spec)
         print(f"Processing class {playerclass.name}")
-        generate_data_for_class(playerclass)
+        generate_data_for_class(playerclass)  # if we want this to be faster, we need to starmap on the request level
 
     print()
     print(f"Total time elapsed: {str(time.time() - start)}")
-
-    # todo improve parallell solution to process all encounters for class instead of for spec
