@@ -117,7 +117,7 @@ def generate_data_for_class(playerclass):
         # create job matrix
         all_enc, job_matrix, spec_list = create_job_matrix(all_valid_encounters, playerclass)
 
-        with Pool(5) as pool:  # async processing of each row in the job matrix # len(spec_list)
+        with Pool(len(spec_list)) as pool:  # async processing of each row in the job matrix
             res = pool.starmap(make_queries, job_matrix)
 
         if len(res) == 0:
