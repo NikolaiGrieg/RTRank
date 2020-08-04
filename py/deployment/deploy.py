@@ -16,7 +16,7 @@ from rootfile import ROOT_DIR
 }
 """
 
-newest_file, _, _ = get_newest_build_file()
+newest_file, major, _ = get_newest_build_file()
 
 with open(ROOT_DIR + f"/build/{newest_file}", 'rb') as f:
     token = get_deploy_key()
@@ -24,10 +24,10 @@ with open(ROOT_DIR + f"/build/{newest_file}", 'rb') as f:
 
     data = {
         "metadata": json.dumps({
-            "changelog": "Backend fixes + data load",  # todo generate
+            "changelog": "Initial release",  # todo generate
             "changelogType": "text",
             "gameVersions": [7717],
-            "releaseType": "beta",
+            "releaseType": major.lower(),
             "relations": {
                 "projects": [{
                     "slug": "details",
