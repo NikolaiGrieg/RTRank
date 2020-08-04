@@ -2,6 +2,7 @@ from zipfile import ZipFile
 import os
 from os.path import basename
 
+from py.deployment.deploy_util import get_latest_build_and_increment
 from rootfile import ROOT_DIR
 
 
@@ -36,4 +37,5 @@ def include_filter(filename):
 
 
 if __name__ == "__main__":
-    zipFilesInDir(ROOT_DIR, ROOT_DIR + "\\build\\RTRank_Beta2.zip", include_filter)
+    new_build_name = get_latest_build_and_increment()
+    zipFilesInDir(ROOT_DIR, ROOT_DIR + f"\\build\\{new_build_name}", include_filter)

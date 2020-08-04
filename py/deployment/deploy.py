@@ -1,7 +1,9 @@
 import json
+import os
 
 import requests
 
+from py.deployment.deploy_util import get_newest_build_file
 from py.secret_handler import get_deploy_key
 from rootfile import ROOT_DIR
 
@@ -14,13 +16,15 @@ from rootfile import ROOT_DIR
 }
 """
 
-with open(ROOT_DIR + "/build/RTRank_Beta2.zip", 'rb') as f:  # todo recursive search based on criterias
+newest_file, _, _ = get_newest_build_file()
+
+with open(ROOT_DIR + f"/build/{newest_file}", 'rb') as f:
     token = get_deploy_key()
     headers = {"X-Api-Token": token}
 
     data = {
         "metadata": json.dumps({
-            "changelog": "Backend fixes + data load",
+            "changelog": "Backend fixes + data load",  # todo generate
             "changelogType": "text",
             "gameVersions": [7717],
             "releaseType": "beta",
@@ -32,6 +36,7 @@ with open(ROOT_DIR + "/build/RTRank_Beta2.zip", 'rb') as f:  # todo recursive se
             }
         })
     }
+    # print(f"PH posting file: {newest_file}")
 
     response = requests.post('https://wow.curseforge.com/api/projects/397496/upload-file',
                              data=data,
