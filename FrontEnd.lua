@@ -77,6 +77,7 @@ function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refact
 	RTRank.lookupState.is_combat = true
 	RTRank.lookupState.combatStartTime = GetTime()
 
+
 	RTRank:step() -- first step
 end
 
@@ -109,7 +110,7 @@ function createFinalMessage(rank, player, target, diff)
 
 	local msg = "Final value against rank " .. rank ..  " ("
 			.. RTRank.utils:get_name_from_rank(rank, encounter_id) .. ")" .. ":\n" ..
-	" At t = " .. t .. ":" .. "\nTarget: " .. RTRank.utils:format_amount(target) ..
+	" After " .. t .. " seconds:" .. "\nTarget: " .. RTRank.utils:format_amount(target) ..
 	"\nYou: " .. RTRank.utils:format_amount(player) .. "\nDiff: " .. RTRank.utils:format_amount(diff);
 	return msg
 end
@@ -124,6 +125,7 @@ function RTRank.events:ENCOUNTER_START (...)
 		if difficultyID ~= 16 then
 			print("RTRank: Non-mythic difficulty detected, using mythic data as this is the only available data.")
 		end
+		print(RTRank.utils:get_encounter_start_text())
 	end
 end
 

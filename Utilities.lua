@@ -109,3 +109,25 @@ function RTRank.utils:split(inputstr, sep)
 	end
 	return t
 end
+
+-- currently unused, but will get the active encounter or the dummy encounter if dummy_enabled
+function RTRank.utils:get_encounter_or_dummy(encounter_id)
+	if encounter_id == -1 then -- we are not in encounter
+		if RTRank.config.dummy_enabled then
+			encounter_id = RTRank.config.dummy_encounter
+		end
+	end
+	return encounter_id
+end
+
+function RTRank.utils:get_encounter_start_text()
+	--- Generates encounter start text on the format of:
+	--- "Comparing to rank {rank} - {target_name} with {num}k"
+	local rank = RTRank.config.match_ranking
+	local encounterID = RTRank.lookupState.active_encounter
+	local target_enc_data = RTRank.lookupState.db.lookup[RTRank.utils:get_player_spec()][encounterID]
+	local target_ser = target_enc_data[rank]
+	local target_end_aps = target_ser[target_enc_data.length - 1] / target_enc_data.length
+	return "Comparing to rank " .. rank .. " - " .. RTRank.utils:get_name_from_rank(rank, encounterID)
+			.. ", with " .. RTRank.utils:format_amount(target_end_aps)
+end
