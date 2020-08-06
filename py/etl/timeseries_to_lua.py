@@ -103,16 +103,21 @@ def init_create_datafiles(encounter_id, output_path_lua, output_path_py, player_
 def generate_lua_body_for_encounter(player_class, spec, encounter_id, frame, names):
     lines = []
 
-    for i in range(len(frame)):  # TODO inject names here
+    for i in range(len(frame)):
         name_str = "[\"name\"] = \"" + names[i] + "\""
+        if frame[i] is not None:
+            data_str = ", ".join([str(int(x)) for x in frame[i]])
+            print(f"Error: missing data for encounter: {encounter_id}, rank: {i+1}")
+        else:
+            data_str = "0"
         line = "".join(["F = function() Database_", player_class, ".lookup[\"", spec, "\"][", str(encounter_id), "][",
-                        str(i + 1), "] = {", ", ".join([str(int(x)) for x in frame[i]]), ", ", name_str, "} end F() \n"])
+                        str(i + 1), "] = {", data_str, ", ", name_str, "} end F() \n"])
         lines.append(line)
     return lines
 
 
 def generate_lua_encounter_metadata(player_class, spec, encounter_id, frame):
-    frame_len = len(frame[0])
+    frame_len = max(len(x) for x in frame if x is not None)
     rank_count = len(frame)
     line = "".join(["F = function() Database_", player_class, ".lookup[\"", spec, "\"][", str(encounter_id),
                     "] = {[\"length\"] = ", str(frame_len),

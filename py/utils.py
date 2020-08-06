@@ -19,18 +19,21 @@ def extrapolate_aps_linearly(jagged_matrix):  # aps = amount per sec (dps/hps)
     :param jagged_matrix:
     :return: square matrix as list of list
     """
-    maxlen = max([len(x) for x in jagged_matrix])
+    maxlen = max([len(x) for x in jagged_matrix if x is not None])
     square_mat = []
     for ser in jagged_matrix:
-        if ser.shape[1] > 1:
-            pad_ser = list(ser[:, 1])
+        if ser is not None:
+            if ser.shape[1] > 1:
+                pad_ser = list(ser[:, 1])
+            else:
+                pad_ser = [x[0] for x in ser]
+            aps = pad_ser[-1] / len(ser)
+            while len(pad_ser) < maxlen:
+                prev_val = pad_ser[-1]
+                pad_ser.append(int(prev_val + aps))
+            square_mat.append(np.array(pad_ser))
         else:
-            pad_ser = [x[0] for x in ser]
-        aps = pad_ser[-1] / len(ser)
-        while len(pad_ser) < maxlen:
-            prev_val = pad_ser[-1]
-            pad_ser.append(int(prev_val + aps))
-        square_mat.append(np.array(pad_ser))
+            square_mat.append(None)
     return square_mat
 
 

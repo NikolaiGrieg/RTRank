@@ -5,6 +5,8 @@ import pandas as pd
 
 def parse_log(contents):
     df = pd.DataFrame(contents['events'])
+    if 'amount' not in df.columns:
+        return None
     df.dropna(inplace=True, subset=['amount'])  # drop events with no amount
     return df
 

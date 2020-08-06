@@ -43,6 +43,8 @@ def get_events_for_all_rankings(df, role):
         end = row[1]['end_time']
         source_id = row[1]['source_id']
 
+        name = row[1]['name']
+
         metric_type = None
         if role == Role.HPS:
             metric_type = "healing"
@@ -52,17 +54,21 @@ def get_events_for_all_rankings(df, role):
         contents = query_wcl(report_id, source_id, start, end, metric_type=metric_type)
 
         df = parse_log(contents)
-        time_ser = transform_to_timeseries(df, start, end)
-        # assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}" # TODO actually fix the problem
-        data.append(time_ser)
+        if df is None:
+            print(f"Error parsing data for {name}")
+            data.append(None)
+        else:
+            time_ser = transform_to_timeseries(df, start, end)
+            # assert len(time_ser) == math.ceil(fight_len), f"{len(time_ser)=}, {math.ceil(fight_len)=}" # TODO actually fix the problem
+            data.append(time_ser)
 
     return data
 
 
 def make_queries(encounter_id, playerclass, playerspec, spec_role):
     print(f"Processing encounter {encounter_id}-{playerspec}")
-    if playerspec == "Enhancement" and encounter_id == 2329:
-        print()
+    # if playerspec == "Enhancement" and encounter_id == 2329:
+    #     print()
     df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
     df = df[:2]  # temp cap num ranks ###
     names = df['name']
@@ -122,7 +128,7 @@ def generate_data_for_class(playerclass):
 
         if len(res) == 0:
             raise Exception("Starmap failure")
-        for i, encounter_id in enumerate(all_enc):
+        for i, encounter_id in enumerate(all_enc):  # TODO I think this is unordered, need to order
             names, timeseries_as_matrix = res[i]
             spec_name = spec_list[i]
             generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
