@@ -22,9 +22,10 @@ def query_wcl(fight_id, sourceid, start, end, metric_type, key=get_wcl_key()):
 def get_rankings_raw(role, encounter_id, player_class, player_spec, key, num_pages):  # todo handle key in this class
     base_url = "https://www.warcraftlogs.com/v1/rankings/encounter/"
     difficulty = 5  # mythic todo extract
+    spec_id = player_class.specs[player_spec]
 
     full_url = base_url + f"{encounter_id}?metric={role.name.lower()}&difficulty={difficulty}&class={player_class.wcl_id}&" \
-                          f"spec={player_spec}&api_key={key}"
+                          f"spec={spec_id}&api_key={key}"
 
     response = requests.get(full_url)
     contents = json.loads(response.text)

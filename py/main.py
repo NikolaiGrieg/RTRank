@@ -65,20 +65,20 @@ def get_events_for_all_rankings(df, role):
     return data
 
 
-def make_queries(encounter_id, playerclass, playerspec, spec_role):
+def make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role):
     print(f"Processing encounter {encounter_id}-{playerspec}")
-    # if playerspec == "Enhancement" and encounter_id == 2329:
+    # if playerspec == "Feral" and orig_idx == 12:
     #     print()
-    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)
+    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec) ###########
     df = df[:2]  # temp cap num ranks ###
     names = df['name']
 
     df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
 
-    print(f"Processing events for encounter {encounter_id}")
+    print(f"Processing events for encounter {encounter_id}, idx {orig_idx}")
     timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
     timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
-    return names, timeseries_as_matrix
+    return names, timeseries_as_matrix, orig_idx
 
 
 def is_valid_for_processing(spec_name, encounter_id, processed_encounters):
@@ -122,17 +122,19 @@ def generate_data_for_class(playerclass):
     if len(list(all_valid_encounters.values())[-1]) > 0:  # assumes ordered dict
         # create job matrix
         all_enc, job_matrix, spec_list = create_job_matrix(all_valid_encounters, playerclass)
-
+        #j_ = list(job_matrix)
         with Pool(len(spec_list)) as pool:  # async processing of each row in the job matrix
             res = pool.starmap(make_queries, job_matrix)
 
         if len(res) == 0:
             raise Exception("Starmap failure")
-        for i, encounter_id in enumerate(all_enc):  # TODO I think this is unordered, need to order
-            names, timeseries_as_matrix = res[i]
+        for tmp_idx in range(len(res)):  # res is unordered
+            names, timeseries_as_matrix, i = res[tmp_idx]
             spec_name = spec_list[i]
+            encounter_id = all_enc[i]
             generate_lua_db(timeseries_as_matrix, names, playerclass.name, spec_name,
-                            encounter_id=encounter_id, append=None, generate_lua=i == len(all_enc) - 1)
+                            encounter_id=encounter_id, append=None,
+                            generate_lua=tmp_idx == len(all_enc) - 1)  # only generate strings when we have all the data
 
 
 def create_job_matrix(all_valid_encounters, playerclass):
@@ -152,7 +154,7 @@ def create_job_matrix(all_valid_encounters, playerclass):
         for _ in range(repeats):
             roles.append(spec_role)
 
-    job_matrix = zip(all_enc, repeat(playerclass), spec_list, roles)
+    job_matrix = zip(range(len(all_enc)), all_enc, repeat(playerclass), spec_list, roles)
     return all_enc, job_matrix, spec_list
 
 

@@ -64,8 +64,8 @@ def extend_datafiles(encounter_id, output_path_lua, output_path_py, player_class
 
         # generate lua body as separate strings
         new_lua_body = []
-        for spec_key in master_frames.keys():
-            new_lua_body += generate_lua_db_body(player_class, spec_key, master_frames)
+        #for spec_key in master_frames.keys():
+        new_lua_body += generate_lua_db_body(player_class, master_frames)
 
         lua_str = join_lua_strings([lua_header] + new_lua_body)
 
@@ -87,15 +87,15 @@ def init_create_datafiles(encounter_id, output_path_lua, output_path_py, player_
     }
 
     # generate lua
-    header = generate_lua_db_metadata(player_class, [spec], master_frames)
+    # header = generate_lua_db_metadata(player_class, [spec], master_frames)
 
     # data
-    lines = generate_lua_db_body(player_class, spec, master_frames)
-    lua_str = join_lua_strings([header] + lines)
+    # lines = generate_lua_db_body(player_class, master_frames)
+    # lua_str = join_lua_strings([header] + lines)
 
     # commit to files
-    with open(output_path_lua, "w+", encoding='utf-8') as f:  # doesn't seem to be able to create file if not existing
-        f.write(lua_str)
+    # with open(output_path_lua, "w+", encoding='utf-8') as f:  # doesn't seem to be able to create file if not existing
+    #     f.write(lua_str)
     with open(output_path_py, 'wb') as f:
         pickle.dump(master_frames, f)
 
@@ -107,8 +107,8 @@ def generate_lua_body_for_encounter(player_class, spec, encounter_id, frame, nam
         name_str = "[\"name\"] = \"" + names[i] + "\""
         if frame[i] is not None:
             data_str = ", ".join([str(int(x)) for x in frame[i]])
-            print(f"Error: missing data for encounter: {encounter_id}, rank: {i+1}")
         else:
+            print(f"Error: missing data for {player_class}-{spec} encounter: {encounter_id}, rank: {i + 1}")
             data_str = "0"
         line = "".join(["F = function() Database_", player_class, ".lookup[\"", spec, "\"][", str(encounter_id), "][",
                         str(i + 1), "] = {", data_str, ", ", name_str, "} end F() \n"])
@@ -126,15 +126,16 @@ def generate_lua_encounter_metadata(player_class, spec, encounter_id, frame):
     return line
 
 
-def generate_lua_db_body(player_class, spec, master_frames):
+def generate_lua_db_body(player_class, master_frames):
     final_strings = []
-    for encounter_id, entry in master_frames[spec].items():
-        frame = entry["data"]
-        names = entry["names"]
-        encounter_meta = generate_lua_encounter_metadata(player_class, spec, encounter_id, frame)
-        body_strs = generate_lua_body_for_encounter(player_class, spec, encounter_id, frame, names)
-        final_strings.append(encounter_meta)
-        final_strings += body_strs
+    for spec, data in master_frames.items():
+        for encounter_id, entry in data.items():
+            frame = entry["data"]
+            names = entry["names"]
+            encounter_meta = generate_lua_encounter_metadata(player_class, spec, encounter_id, frame)
+            body_strs = generate_lua_body_for_encounter(player_class, spec, encounter_id, frame, names)
+            final_strings.append(encounter_meta)
+            final_strings += body_strs
     return final_strings
 
 
