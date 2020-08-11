@@ -160,4 +160,17 @@ function end_combat_session(override_text)  --different from end combat, this sh
         RTRank:updateText(RTRank:getDefaultText())
 	end
 
+	-- reset states
+	RTRank.encounterState.player_amount = -1
+	RTRank.encounterState.target_amount = -1
+	RTRank.encounterState.diff = -1
+	RTRank.encounterState.player_aps = -1
+	RTRank.encounterState.target_aps = -1
+	RTRank.encounterState.aps_diff = -1
+
+	RTRank.lookupState.active_encounter = -1
+	RTRank.lookupState.difficultyID = -1
+	RTRank.lookupState.startTime = nil
+	RTRank.lookupState.combatStartTime = -1
+
 end

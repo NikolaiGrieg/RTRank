@@ -82,23 +82,11 @@ function RTRank.events:PLAYER_REGEN_DISABLED (...) --enter combat -- TODO refact
 end
 
 function RTRank.events:PLAYER_REGEN_ENABLED (...) -- left combat
-	local state = RTRank.encounterState
-
-	if RTRank.encounterState.in_session then  -- execute final commands before ending session
-		local msg = ""
-		if RTRank.config.output_type == "cumulative" then
-			msg = createFinalMessage(RTRank.config.match_ranking, state.player_amount, state.target_amount, state.diff)
-		elseif RTRank.config.output_type == "second" then
-			msg = createFinalMessage(RTRank.config.match_ranking, state.player_aps, state.target_aps, state.aps_diff)
-		end
-		RTRank:updateText(msg)
-
+	RTRank.lookupState.is_combat = false
+	if RTRank.config.dummy_enabled then --simulate end encounter
+		RTRank:setFinalText()
 		end_combat_session(true)
 	end
-
-	RTRank.lookupState.is_combat = false
-	RTRank.lookupState.active_encounter = -1
-	RTRank.lookupState.difficultyID = -1
 end
 
 function createFinalMessage(rank, player, target, diff)
@@ -129,6 +117,22 @@ function RTRank.events:ENCOUNTER_START (...)
 	end
 end
 
+function RTRank.events:ENCOUNTER_END (...)
+	RTRank:setFinalText()
+	end_combat_session(true)
+end
+
+function RTRank:setFinalText()
+	local state = RTRank.encounterState
+	local msg = ""
+	if RTRank.config.output_type == "cumulative" then
+		msg = createFinalMessage(RTRank.config.match_ranking, state.player_amount, state.target_amount, state.diff)
+	elseif RTRank.config.output_type == "second" then
+		msg = createFinalMessage(RTRank.config.match_ranking, state.player_aps, state.target_aps, state.aps_diff)
+	end
+	RTRank:updateText(msg)
+end
+
 function RTRank:setDefaultText()
 	self:updateText(self:getDefaultText())
 end
@@ -147,8 +151,5 @@ end
 
 
 --TODOs:
---Load data for all classes
---Then presentation could use some polish
+--Feature 4: GUI settings with ACE
 --Feature 3 (if we get this far): Dynamically infer final rank based on cumulative amount proximity at t (copy python implementation)
-
---todo option to not show in raids
