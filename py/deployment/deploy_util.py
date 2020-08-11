@@ -48,5 +48,5 @@ def get_newest_build_file():  # RTRank_Beta2.zip
 
 def get_latest_build_and_increment():
     latest, latest_major, latest_minor = get_newest_build_file()
-    next_build_name = "RTRank_" + latest_major + str(latest_minor + 1) + ".zip"
+    next_build_name = "RTRank_" + latest_major.capitalize() + str(latest_minor + 1) + ".zip"
     return next_build_name

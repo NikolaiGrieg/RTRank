@@ -13,7 +13,7 @@ function RTRank.utils:get_player_spec()
 end
 
 function RTRank.utils:get_role(player_class, player_spec )
-	local role = Constants["Rolemap"][player_class][player_spec]
+	local role = RTRank.constants.Rolemap[player_class][player_spec]
 	if role == nil then
 		print("RTRank: Unable to find role in rolemap for class: " .. player_class .. ", spec: " .. player_spec)
 	end
