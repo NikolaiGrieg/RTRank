@@ -81,36 +81,48 @@ function updateDisplay(db, encounter_id, target_series)
 	local target_series_len = db.lookup[spec][encounter_id].length
 
 	local cumulative_amt = get_current_amount(role)
-
+	local timeSerVal = -1
 	if seconds < target_series_len then
-		local timeSerVal = target_series[seconds + 1] -- 1 indexed..
-
-		RTRank.encounterState:updateState(cumulative_amt, timeSerVal)
-		local state = RTRank.encounterState
-
-		local new_text = ""
-		if RTRank.config.output_type == "cumulative" then
-			-- TODO someText:SetTextColor(red,green,blue,alpha)
-			new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
-					RTRank.utils:format_amount(state.target_amount) .. "\nRelative performance: " ..
-					RTRank.utils:format_amount(state.diff)
-		elseif RTRank.config.output_type == "second" then
-			new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
-					RTRank.utils:format_amount(state.target_aps) .. "\nRelative performance: " ..
-					RTRank.utils:format_amount(state.aps_diff)
-		end
-
-		RTRank:updateText(new_text)
-
-		local pct_diff = RTRank.utils:convert_aps_to_bar_pct(state.player_aps, state.target_aps)
-		RTRank:setBarValue(pct_diff)
-
-		C_Timer.After(1, RTRank.step) --todo handle last partial second, these events are lost atm
+		timeSerVal = target_series[seconds + 1] -- 1 indexed..
 	else
-		print("RTRank: Exceeded max time steps(" .. seconds .. ") for comparison, stopping updates")
+		timeSerVal = RTRank:extrapolateLinearCumulative(target_series, seconds, target_series_len)
 	end
+
+	--update state
+	RTRank.encounterState:updateState(cumulative_amt, timeSerVal)
+	local state = RTRank.encounterState
+
+	--update text display
+	RTRank:renderText(state)
+
+	--update bar display
+	local pct_diff = RTRank.utils:convert_aps_to_bar_pct(state.player_aps, state.target_aps)
+	RTRank:setBarValue(pct_diff)
+
+	C_Timer.After(1, RTRank.step) --todo handle last partial second, these events are lost atm
 end
 
+function RTRank:renderText(state)
+	local new_text = ""
+	if RTRank.config.output_type == "cumulative" then
+		new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
+				RTRank.utils:format_amount(state.target_amount) .. "\nRelative performance: " ..
+				RTRank.utils:format_amount(state.diff)
+	elseif RTRank.config.output_type == "second" then
+		new_text = "Target(" .. RTRank.config.match_ranking .. "): " ..
+				RTRank.utils:format_amount(state.target_aps) .. "\nRelative performance: " ..
+				RTRank.utils:format_amount(state.aps_diff)
+	end
+	RTRank:updateText(new_text)
+end
+
+function RTRank:extrapolateLinearCumulative(target_ser, t, target_ser_len)
+	local lastVal = target_ser[target_ser_len - 1]
+	local finalAPS = target_ser[target_ser_len - 1] / target_ser_len
+	local extraSeconds = t - target_ser_len
+
+	return lastVal + (finalAPS * extraSeconds)
+end
 
 function RTRank.encounterState:updateState(cumulative_player, cumulative_target)
 	local seconds = RTRank.utils:get_current_time_step()
