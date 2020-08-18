@@ -22,9 +22,9 @@ def zipFilesInDir(dirName, zipFileName, filter):
                     # Add file to zip
                     folder_base = basename(folderName)
                     if folder_base == "RTRank":  # Only supports 1 folder level
-                        rel_path = "RTRank" + "\\" + basename(filePath)
+                        rel_path = "RTRank" + "/" + basename(filePath)
                     else:
-                        rel_path = "RTRank" + "\\" + folder_base + "\\" + basename(filePath)
+                        rel_path = "RTRank" + "/" + folder_base + "/" + basename(filePath)
                     print(f"Added {rel_path}")
                     zipObj.write(filePath, rel_path)
 

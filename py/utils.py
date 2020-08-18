@@ -38,7 +38,7 @@ def extrapolate_aps_linearly(jagged_matrix):  # aps = amount per sec (dps/hps)
 
 
 def get_encounter_id_map():
-    with open(ROOT_DIR + "\\py\\static\\Encounters.json") as f:
+    with open(ROOT_DIR + "/py/static/Encounters.json") as f:
         encounters = json.load(f)['encounters']
     encounters_reversed = {}
     for d in encounters:

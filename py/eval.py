@@ -10,7 +10,7 @@ from py.utils import extrapolate_aps_linearly
 from rootfile import ROOT_DIR
 
 # Deprecated
-with open(ROOT_DIR + "\\testdata\\Database.pkl", 'rb') as f:
+with open(ROOT_DIR + "/testdata/Database.pkl", 'rb') as f:
     square_timeser = pickle.load(f)
 
 

@@ -8,7 +8,7 @@ regenerate_data()
 
 print("Building")
 new_build_name = get_latest_build_and_increment()
-zipFilesInDir(ROOT_DIR, ROOT_DIR + f"\\build\\{new_build_name}", include_filter)
+zipFilesInDir(ROOT_DIR, ROOT_DIR + f"/build/{new_build_name}", include_filter)
 
 print("Deploying")
 deploy()
