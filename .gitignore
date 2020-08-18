@@ -1,5 +1,6 @@
 *.json
 secrets.json
+secrets_.json
 \.idea
 *.xml
 *.iml

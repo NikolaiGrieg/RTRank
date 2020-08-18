@@ -69,7 +69,7 @@ def make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role):
     print(f"Processing encounter {encounter_id}-{playerspec}")
     # if playerspec == "Feral" and orig_idx == 12:
     #     print()
-    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec) ###########
+    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)  ###########
     df = df[:2]  # temp cap num ranks ###
     names = df['name']
 
@@ -122,7 +122,7 @@ def generate_data_for_class(playerclass):
     if len(list(all_valid_encounters.values())[-1]) > 0:  # assumes ordered dict
         # create job matrix
         all_enc, job_matrix, spec_list = create_job_matrix(all_valid_encounters, playerclass)
-        #j_ = list(job_matrix)
+        # j_ = list(job_matrix)
         with Pool(len(spec_list)) as pool:  # async processing of each row in the job matrix
             res = pool.starmap(make_queries, job_matrix)
 
@@ -175,7 +175,7 @@ def get_valid_encounters(encounter_ids, playerclass):
     return all_valid_encounters
 
 
-if __name__ == '__main__':
+def regenerate_data():
     start = time.time()
 
     classes = [
@@ -188,3 +188,7 @@ if __name__ == '__main__':
 
     print()
     print(f"Total time elapsed: {str(time.time() - start)}")
+
+
+if __name__ == '__main__':
+    regenerate_data()
