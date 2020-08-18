@@ -40,3 +40,11 @@ jobs:
         wcl_key: ${{ secrets.WCL_KEY }}
         deploy_token: ${{ secrets.DEPLOY_TOKEN }}
       run: python -m full_build_deploy
+
+    # Push latest data back to repo
+    - name: Commit zip
+        run: |
+          git config --global user.name ${{ secrets.USERNAME }}
+          git config --global user.email ${{ secrets.EMAIL }}
+          git commit -m "Updated data in zip ***NO_CI***"
+          git push
