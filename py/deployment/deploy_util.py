@@ -3,7 +3,7 @@ import os
 from rootfile import ROOT_DIR
 
 
-def get_newest_build_file():  # RTRank_Beta2.zip
+def get_newest_build_file():
     latest = ""
     latest_major = "alpha"
     latest_minor = 0

@@ -37,11 +37,11 @@ def deploy():
                 }
             })
         }
-        # print(f"PH posting file: {newest_file}")
+        print(f"PH posting file: {newest_file}")
 
-        response = requests.post('https://wow.curseforge.com/api/projects/397496/upload-file',
-                                 data=data,
-                                 files={"file": f},
-                                 headers=headers)
-        content = json.loads(response.content)
-        print(content)
+        # response = requests.post('https://wow.curseforge.com/api/projects/397496/upload-file',
+        #                          data=data,
+        #                          files={"file": f},
+        #                          headers=headers)
+        # content = json.loads(response.content)
+        # print(content)
