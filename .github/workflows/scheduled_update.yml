@@ -34,6 +34,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
       
-    # Runs a set of commands using the runners shell
+    # Do everything
     - name: Generate data - build - deploy
+      env:
+        wcl_key: ${{ secrets.WCL_KEY }}
+        deploy_token: ${{ secrets.DEPLOY_TOKEN }}
       run: python -m full_build_deploy
