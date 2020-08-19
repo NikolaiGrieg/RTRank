@@ -6,12 +6,14 @@ from py.deployment.deploy_util import get_latest_build_and_increment
 from py.main import regenerate_data
 from rootfile import ROOT_DIR
 
-regenerate_data()
 
-print("Building")
-new_build_name = get_latest_build_and_increment()
-zipFilesInDir(ROOT_DIR, ROOT_DIR + f"/build/{new_build_name}", include_filter)
-print(f"New build name: {new_build_name}")
+if __name__=='__main__':
+    regenerate_data()
 
-print("Deploying")
-deploy()
+    print("Building")
+    new_build_name = get_latest_build_and_increment()
+    zipFilesInDir(ROOT_DIR, ROOT_DIR + f"/build/{new_build_name}", include_filter)
+    print(f"New build name: {new_build_name}")
+
+    print("Deploying")
+    deploy()

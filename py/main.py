@@ -3,6 +3,7 @@ import pickle
 import time
 from datetime import timedelta
 from itertools import repeat
+from json import JSONDecodeError
 from multiprocessing import Pool
 
 from setuptools._vendor.ordered_set import OrderedSet
@@ -65,20 +66,26 @@ def get_events_for_all_rankings(df, role):
     return data
 
 
-def make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role):
+def make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role, retries=0):
     print(f"Processing encounter {encounter_id}-{playerspec}")
-    # if playerspec == "Feral" and orig_idx == 12:
-    #     print()
-    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)  ###########
-    df = df[:2]  # temp cap num ranks ###
-    names = df['name']
+    max_retries = 3
+    try:
+        df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)  ###########
+        df = df[:2]  # temp cap num ranks ###
+        names = df['name']
 
-    df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
+        df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
 
-    print(f"Processing events for encounter {encounter_id}, idx {orig_idx}")
-    timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
-    timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
-    return names, timeseries_as_matrix, orig_idx
+        print(f"Processing events for encounter {encounter_id}, idx {orig_idx}")
+        timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
+        timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+        return names, timeseries_as_matrix, orig_idx
+    except JSONDecodeError as e:
+        if retries < max_retries:
+            print(e)
+            make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role, retries+1)
+        else:
+            raise e
 
 
 def is_valid_for_processing(spec_name, encounter_id, processed_encounters):
