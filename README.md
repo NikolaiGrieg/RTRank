@@ -14,6 +14,8 @@ The data is subject to the build time of the AddOn code, which should be approxi
 In the current version, ranks 1-2 are available for all specs.
 Only mythic raid data is available due to size constraints.
 
+The WCL data is retrieved from https://www.warcraftlogs.com/v1/docs
+
 ### Commands (rtr or rtrank):  
 * rank (x) -> sets the target rank to compare to to x
 * background -> toggle background on or off
