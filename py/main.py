@@ -68,24 +68,17 @@ def get_events_for_all_rankings(df, role):
 
 def make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role, retries=0):
     print(f"Processing encounter {encounter_id}-{playerspec}")
-    max_retries = 3
-    try:
-        df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)  ###########
-        df = df[:2]  # temp cap num ranks ###
-        names = df['name']
+    df = get_top_x_rankings(spec_role, encounter_id, playerclass, playerspec)  ###########
+    df = df[:2]  # temp cap num ranks ###
+    names = df['name']
 
-        df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
+    df = get_fight_metadata_for_rankings(df)  # 2 * len(df) requests
 
-        print(f"Processing events for encounter {encounter_id}, idx {orig_idx}")
-        timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
-        timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
-        return names, timeseries_as_matrix, orig_idx
-    except JSONDecodeError as e:
-        if retries < max_retries:
-            print(e)
-            make_queries(orig_idx, encounter_id, playerclass, playerspec, spec_role, retries+1)
-        else:
-            raise e
+    print(f"Processing events for encounter {encounter_id}, idx {orig_idx}")
+    timeseries = get_events_for_all_rankings(df, spec_role)  # len(df) requests
+    timeseries_as_matrix = extrapolate_aps_linearly(timeseries)
+    return names, timeseries_as_matrix, orig_idx
+
 
 
 def is_valid_for_processing(spec_name, encounter_id, processed_encounters):
