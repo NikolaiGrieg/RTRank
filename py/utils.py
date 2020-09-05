@@ -45,3 +45,12 @@ def get_encounter_id_map():
         encounters_reversed[d['name']] = d['id']
 
     return encounters_reversed
+
+
+def unpack_response(response):
+    if response.status_code != 200:
+        print(f"response={response}")
+        raise Exception(f"Received bad status code, expected: 200, actual: {response.status_code}")
+    else:
+        contents = json.loads(response.text)
+        return contents

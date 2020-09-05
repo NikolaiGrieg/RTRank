@@ -123,7 +123,7 @@ def generate_data_for_class(playerclass):
         # create job matrix
         all_enc, job_matrix, spec_list = create_job_matrix(all_valid_encounters, playerclass)
         # j_ = list(job_matrix)
-        with Pool(len(spec_list)) as pool:  # async processing of each row in the job matrix
+        with Pool(6) as pool:  # int(len(spec_list) / 4)) as pool:  # async processing of each row in the job matrix
             res = pool.starmap(make_queries, job_matrix)
 
         if len(res) == 0:

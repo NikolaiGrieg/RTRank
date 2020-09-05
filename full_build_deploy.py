@@ -1,5 +1,6 @@
 import os
 from json import JSONDecodeError
+from time import sleep
 
 from py.deployment.build_zip import zipFilesInDir, include_filter
 from py.deployment.deploy import deploy
@@ -25,12 +26,13 @@ def retry_wrap_func(func, max_retries):
             if retries < max_retries:
                 print(f"JSONDecodeError hit, at retries ({retries}):")
                 print(e)
+                sleep(30)  # seconds
             else:
                 raise e
 
 
 if __name__ == '__main__':
-    retry_wrap_func(regenerate_data, 30)  # function will restart from checkpoint (caching spec:encounters processed)
+    retry_wrap_func(regenerate_data, 10)  # function will restart from checkpoint (caching spec:encounters processed)
 
     print("Building")
     new_build_name = get_latest_build_and_increment()

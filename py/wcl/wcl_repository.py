@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 
 from py.secret_handler import get_wcl_key
+from py.utils import unpack_response
 
 
 def generate_url(fight_id, sourceid, start, end, key, type):
@@ -15,7 +16,7 @@ def query_wcl(fight_id, sourceid, start, end, metric_type, key=get_wcl_key()):
     url = generate_url(fight_id, sourceid, start, end, key, metric_type)
 
     response = requests.get(url)
-    contents = json.loads(response.text)
+    contents = unpack_response(response)
     return contents
 
 
@@ -28,7 +29,7 @@ def get_rankings_raw(role, encounter_id, player_class, player_spec, key, num_pag
                           f"spec={spec_id}&api_key={key}"
 
     response = requests.get(full_url)
-    contents = json.loads(response.text)
+    contents = unpack_response(response)
 
     # syncronously handle paging:
     pages = [contents]
@@ -50,7 +51,7 @@ def get_fight_metadata(row):
     code = row[1]['reportID']
     full_url = f"https://www.warcraftlogs.com:443/v1/report/fights/{code}?api_key={key}"
     response = requests.get(full_url)
-    contents = json.loads(response.text)
+    contents = unpack_response(response)
     return contents
 
 
@@ -61,7 +62,7 @@ def get_report_source_id(row):
 
     full_url = f"https://www.warcraftlogs.com:443/v1/report/fights/{report_id}?api_key={key}"
     response = requests.get(full_url)
-    contents = json.loads(response.text)
+    contents = unpack_response(response)
 
     source_id = None
     for player in contents['friendlies']:
