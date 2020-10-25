@@ -1,48 +1,48 @@
-name: CD
+# name: CD
 
-on:
-  schedule:
-    - cron: '0 14 * * 3,1'  # 1400 at wednesday and monday
+# on:
+#   schedule:
+#     - cron: '0 14 * * 3,1'  # 1400 at wednesday and monday
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  build_deploy:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+# # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# jobs:
+#   build_deploy:
+#     # The type of runner that the job will run on
+#     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+#     # Steps represent a sequence of tasks that will be executed as part of the job
     
-    steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        # Semantic version range syntax or exact version of a Python version
-        python-version: '3.8' 
+#     steps:
+#     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+#     - uses: actions/checkout@v2
+#     - name: Set up Python 3.8
+#       uses: actions/setup-python@v2
+#       with:
+#         # Semantic version range syntax or exact version of a Python version
+#         python-version: '3.8' 
     
-    # You can test your matrix by printing the current Python version
-    - name: Display Python version
-      run: python -c "import sys; print(sys.version)"
+#     # You can test your matrix by printing the current Python version
+#     - name: Display Python version
+#       run: python -c "import sys; print(sys.version)"
 
-    # Install packages
-    - name: Install requirements
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+#     # Install packages
+#     - name: Install requirements
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install -r requirements.txt
       
-    # Do everything
-    - name: Generate data - build - deploy
-      env:
-        wcl_key: ${{ secrets.WCL_KEY }}
-        deploy_token: ${{ secrets.DEPLOY_TOKEN }}
-      run: python -m full_build_deploy
+#     # Do everything
+#     - name: Generate data - build - deploy
+#       env:
+#         wcl_key: ${{ secrets.WCL_KEY }}
+#         deploy_token: ${{ secrets.DEPLOY_TOKEN }}
+#       run: python -m full_build_deploy
 
-    # Push latest data back to repo
-    - name: Commit zip
-      run: |
-        git config --global user.name ${{ secrets.USERNAME }}
-        git config --global user.email ${{ secrets.EMAIL }}
-        git add build
-        git commit -m "Updated data in zip ***NO_CI***"
-        git push
+#     # Push latest data back to repo
+#     - name: Commit zip
+#       run: |
+#         git config --global user.name ${{ secrets.USERNAME }}
+#         git config --global user.email ${{ secrets.EMAIL }}
+#         git add build
+#         git commit -m "Updated data in zip ***NO_CI***"
+#         git push
